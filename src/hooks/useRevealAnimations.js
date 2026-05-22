@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 const observerOptions = {
   rootMargin: '0px 0px -12% 0px',
-  threshold: 0.05,
+  threshold: 0.15,
 }
 
 const scrollSectionSelector =
