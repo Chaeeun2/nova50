@@ -157,9 +157,11 @@ function Header({ currentPage = 'home', forceDark = false, variant = 'transparen
         aria-label="메뉴 열기"
         onClick={openMobileMenu}
       >
-        <span className="mobile-menu-open-line" aria-hidden="true" />
-        <span className="mobile-menu-open-line" aria-hidden="true" />
-        <span className="mobile-menu-open-line" aria-hidden="true" />
+        <span className="mobile-menu-open-icon" aria-hidden="true">
+          <span className="mobile-menu-open-line" />
+          <span className="mobile-menu-open-line" />
+          <span className="mobile-menu-open-line" />
+        </span>
       </button>
 
       <div

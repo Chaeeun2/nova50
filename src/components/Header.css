@@ -110,21 +110,30 @@
     display: block;
   }
 
-  /* 햄버거 — 메뉴 열림/닫힘과 무관하게 동일한 모양 유지 */
+  /* 햄버거 — 아이콘 22×18 유지, 터치 영역 44×44 */
   .mobile-menu-open-btn {
     position: fixed;
     z-index: var(--z-header, 1000);
-    top: 16px;
-    right: 20px;
-    display: block;
-    width: 22px;
-    height: 18px;
+    top: 3px;
+    right: 9px;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
     padding: 0;
     border: 0;
     background: transparent;
     color: var(--color-white);
     cursor: pointer;
     pointer-events: auto;
+  }
+
+  .mobile-menu-open-icon {
+    position: relative;
+    width: 22px;
+    height: 18px;
+    flex-shrink: 0;
   }
 
   body.is-mobile-menu-open .mobile-menu-open-btn {
@@ -302,10 +311,6 @@
   .mobile-menu-list a:focus-visible::after {
     opacity: 1;
     transform: scaleX(1);
-  }
-
-  .contact-location-info {
-    font-size: 16px;
   }
 }
 
