@@ -106,10 +106,8 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       korean: {
         pc: `각종 기념식과 세리머니를 전문적으로 진행합니다.
 목적에 맞는 안정적이고 완성도 높은 운영을 제공합니다.`,
-        mo: `각종 기념식과 세리머니를
-전문적으로 진행합니다.
-목적에 맞는 안정적이고
-완성도 높은 운영을 제공합니다.`,
+        mo: `각종 기념식과 세리머니를 전문적으로 진행합니다.
+목적에 맞는 안정적이고 완성도 높은 운영을 제공합니다.`,
       },
       tags: [`Awards Ceremony`, `Opening & Closing Ceremony`, `Gala-Dinner`],
     },
@@ -117,14 +115,16 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       number: '02',
       title: { pc: `Public event`, mo: `Public event` },
       english: {
-        pc: `We create public events that help brands meet wider audiences.`,
-        mo: `We create public events that help brands meet wider audiences.`,
+        pc: `We create moments where people gather, engage, and share meaningful experiences.
+Through compelling events that inspire participation, we bring every venue to life.`,
+        mo: `We create moments where people gather, engage, and share meaningful experiences.
+Through compelling events that inspire participation, we bring every venue to life.`,
       },
       korean: {
-        pc: `공공성과 브랜드 메시지가 자연스럽게 만나는 장을 설계합니다.
-참여자와 지역, 브랜드가 함께 기억할 수 있는 경험을 만듭니다.`,
-        mo: `공공성과 브랜드 메시지가 자연스럽게 만나는 장을 설계합니다.
-참여자와 지역, 브랜드가 함께 기억할 수 있는 경험을 만듭니다.`,
+        pc: `사람들이 모이고, 경험하고, 공유하는 순간을 만듭니다.
+참여를 이끌어내는 매력적인 이벤트로 현장을 완성합니다.`,
+        mo: `사람들이 모이고, 경험하고, 공유하는 순간을 만듭니다.
+참여를 이끌어내는 매력적인 이벤트로 현장을 완성합니다.`,
       },
       tags: [`Public Festival`, `Community Event`, `Government Event`],
     },
@@ -132,16 +132,17 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       number: '03',
       title: { pc: `Product launch`, mo: `product launch` },
       english: {
-        pc: `We design launch moments that make new products instantly memorable.`,
-        mo: `We design launch moments that make new products instantly memorable.`,
+        pc: `The moment to reveal not just a product, but a story.
+We create impactful launch experiences that leave a lasting impression.`,
+        mo: `The moment to reveal not just a product, but a story.
+We create impactful launch experiences that leave
+a lasting impression.`,
       },
       korean: {
-        pc: `제품의 첫인상이 강렬하게 남도록 런칭 경험을 설계합니다.
-브랜드 메시지와 제품 가치를 하나의 장면으로 전달합니다.`,
-        mo: `제품의 첫인상이 강렬하게 남도록
-런칭 경험을 설계합니다.
-브랜드 메시지와 제품 가치를
-하나의 장면으로 전달합니다.`,
+        pc: `제품이 아닌 '이야기'를 세상에 공개하는 순간.
+강렬한 인상으로 오래 기억되는 런칭을 만들어냅니다.`,
+        mo: `제품이 아닌 '이야기'를 세상에 공개하는 순간.
+강렬한 인상으로 오래 기억되는 런칭을 만들어냅니다.`,
       },
       tags: [`Launch Event`, `Brand Showcase`, `Media Event`],
     },
@@ -149,16 +150,15 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       number: '04',
       title: { pc: `Hospitality`, mo: `Hospitality` },
       english: {
-        pc: `We build hospitality programs that make guests feel carefully considered.`,
-        mo: `We build hospitality programs that make guests feel carefully considered.`,
+        pc: `We deliver tailored hospitality programs for VIPs and valued customers, strengthening brand connection.
+With thoughtful details, we create truly exceptional experiences.`,
+        mo: `We deliver tailored hospitality programs for VIPs and valued customers, strengthening brand connection.
+With thoughtful details, we create truly exceptional experiences.`,
       },
       korean: {
-        pc: `초대받은 순간부터 돌아가는 순간까지 세심하게 설계합니다.
-브랜드의 태도가 경험으로 전달되는 접점을 만듭니다.`,
-        mo: `초대받은 순간부터 돌아가는 순간까지
-세심하게 설계합니다.
-브랜드의 태도가 경험으로
-전달되는 접점을 만듭니다.`,
+        pc: `VIP 및 고객 대상 맞춤형 호스피탈리티로 브랜드를 각인시킵니다.
+섬세한 디테일로 특별한 경험을 완성합니다.`,
+        mo: `VIP 및 고객 대상 맞춤형 호스피탈리티로 브랜드를 각인시킵니다. 섬세한 디테일로 특별한 경험을 완성합니다.`,
       },
       tags: [`VIP Program`, `Guest Journey`, `Protocol`],
     },
@@ -166,15 +166,18 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       number: '05',
       title: { pc: `Convention`, mo: `Convention` },
       english: {
-        pc: `We operate conventions with clear structure and seamless flow.`,
-        mo: `We operate conventions with clear structure and seamless flow.`,
+        pc: `We plan and operate a wide range of conventions and conferences.
+Our services support effective information sharing and meaningful networking.`,
+        mo: `We plan and operate a wide range of conventions
+        and conferences.
+Our services support effective information sharing
+and meaningful networking.`,
       },
       korean: {
-        pc: `복잡한 프로그램을 안정적인 흐름으로 구성합니다.
-참여자가 몰입할 수 있는 완성도 높은 컨벤션을 운영합니다.`,
-        mo: `복잡한 프로그램을 안정적인 흐름으로 구성합니다.
-참여자가 몰입할 수 있는
-완성도 높은 컨벤션을 운영합니다.`,
+        pc: `다양한 컨벤션과 회의를 기획하고 운영합니다.
+정보 전달과 네트워킹이 효과적으로 이루어지도록 지원합니다.`,
+        mo: `다양한 컨벤션과 회의를 기획하고 운영합니다.
+정보 전달과 네트워킹이 효과적으로 이루어지도록 지원합니다.`,
       },
       tags: [`Conference`, `Forum`, `Business Session`],
     },
@@ -182,15 +185,18 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       number: '06',
       title: { pc: `Exhibition`, mo: `Exhibition` },
       english: {
-        pc: `We translate brand stories into spatial and visual experiences.`,
-        mo: `We translate brand stories into spatial and visual experiences.`,
+        pc: `We provide integrated exhibition planning and spatial direction.
+By bringing content and space together, we create immersive experiences.`,
+        mo: `We provide integrated exhibition planning
+        and spatial direction.
+By bringing content and space together,
+we create immersive experiences.`,
       },
       korean: {
-        pc: `브랜드의 메시지를 공간과 시각 언어로 확장합니다.
-관람자가 직접 발견하고 기억하는 전시 경험을 만듭니다.`,
-        mo: `브랜드의 메시지를 공간과 시각 언어로 확장합니다.
-관람자가 직접 발견하고 기억하는
-전시 경험을 만듭니다.`,
+        pc: `전시 기획과 공간 연출을 통합적으로 제공합니다.
+콘텐츠와 공간이 어우러진 몰입형 경험을 선사합니다.`,
+        mo: `전시 기획과 공간 연출을 통합적으로 제공합니다.
+콘텐츠와 공간이 어우러진 몰입형 경험을 선사합니다.`,
       },
       tags: [`Brand Exhibition`, `Booth Design`, `Experience Space`],
     },
@@ -198,15 +204,17 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       number: '07',
       title: { pc: `Sports marketing`, mo: `sports marketing` },
       english: {
-        pc: `We connect sports moments with brand energy and audience participation.`,
-        mo: `We connect sports moments with brand energy and audience participation.`,
+        pc: `We plan and execute sports-based marketing strategies.
+By connecting brands and fans in authentic ways, we expand meaningful touchpoints.`,
+        mo: `We plan and execute sports-based marketing strategies.
+By connecting brands and fans in authentic ways,
+we expand meaningful touchpoints.`,
       },
       korean: {
-        pc: `스포츠가 가진 에너지와 브랜드의 메시지를 연결합니다.
-현장의 열기와 참여가 오래 남는 마케팅 경험을 설계합니다.`,
-        mo: `스포츠가 가진 에너지와 브랜드의 메시지를 연결합니다.
-현장의 열기와 참여가 오래 남는
-마케팅 경험을 설계합니다.`,
+        pc: `스포츠 기반 마케팅 전략을 기획·실행합니다.
+브랜드와 팬을 자연스럽게 연결하는 접점을 확장합니다.`,
+        mo: `스포츠 기반 마케팅 전략을 기획·실행합니다.
+브랜드와 팬을 자연스럽게 연결하는 접점을 확장합니다.`,
       },
       tags: [`Sports Event`, `Fan Experience`, `Sponsorship Activation`],
     },

@@ -601,8 +601,8 @@
   }
 
   .card-content {
-    gap: 10px;
-    padding: 25px 72px 25px 25px;
+    gap: 16px;
+    padding: 25px;
   }
 
   .card-content strong {
@@ -611,7 +611,7 @@
   }
 
   .card-content span {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.3;
     letter-spacing: -0.02em;
   }

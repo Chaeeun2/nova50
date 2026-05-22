@@ -227,7 +227,7 @@
   left: 0;
   width: 50px;
   height: 1.5px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   content: "";
   transition:
     background-color 0.3s ease,
@@ -254,7 +254,7 @@
 
 .service-accordion-item.is-open .service-toggle-icon::before,
 .service-accordion-item.is-open .service-toggle-icon::after {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .service-accordion-item.is-open .service-toggle-icon::before {
