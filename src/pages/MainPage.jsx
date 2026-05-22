@@ -261,22 +261,19 @@ function MainPage() {
             className="section-rule"
             aria-hidden="true"
             data-reveal
-            style={revealDelay(section02TitleLines.length + 1)}
           />
-          <h3 data-reveal style={revealDelay(section02TitleLines.length + 2)}>
+          <h3 data-reveal>
             {mainPageText.section02.content.title}
           </h3>
           <p
             className="about-copy about-copy-pc"
             data-reveal
-            style={revealDelay(section02TitleLines.length + 3)}
           >
             {mainPageText.section02.content.body.pc}
           </p>
           <p
             className="about-copy about-copy-mo"
             data-reveal
-            style={revealDelay(section02TitleLines.length + 3)}
           >
             {mainPageText.section02.content.body.mo}
           </p>

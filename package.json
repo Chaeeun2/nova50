@@ -7,10 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && firebase deploy --only hosting:nova-50",
+    "deploy:preview": "npm run build && firebase hosting:channel:deploy preview --only hosting:nova-50"
   },
   "dependencies": {
     "@vis.gl/react-google-maps": "^1.8.3",
+    "firebase": "^12.13.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
@@ -22,6 +25,7 @@
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "firebase-tools": "^15.18.0",
     "globals": "^17.6.0",
     "vite": "^8.0.12"
   }

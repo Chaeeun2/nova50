@@ -558,33 +558,28 @@ function AboutPage() {
             className="about-page-line"
             aria-hidden="true"
             data-reveal
-            style={revealDelay(identityTitleRevealCount + 1)}
           />
           <h2
             className="about-identity-intro about-identity-intro-pc"
             data-reveal
-            style={revealDelay(identityTitleRevealCount + 2)}
           >
             {aboutText.identity.introTitle.pc}
           </h2>
           <h2
             className="about-identity-intro about-identity-intro-mo"
             data-reveal
-            style={revealDelay(identityTitleRevealCount + 2)}
           >
             {aboutText.identity.introTitle.mo}
           </h2>
           <div
             className="identity-copy identity-copy-pc"
             data-reveal
-            style={revealDelay(identityTitleRevealCount + 3)}
           >
             {renderIdentityCopy(aboutText.identity.copy.pc, 'copy-pc')}
           </div>
           <div
             className="identity-copy identity-copy-mo"
             data-reveal
-            style={revealDelay(identityTitleRevealCount + 3)}
           >
             {renderIdentityCopy(aboutText.identity.copy.mo, 'copy-mo')}
           </div>

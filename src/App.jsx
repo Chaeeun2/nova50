@@ -1,10 +1,26 @@
+import { useEffect } from 'react'
 import MainPage from './pages/MainPage'
 import AboutPage from './pages/AboutPage'
 import WorksPage from './pages/WorksPage'
 import CareerPage from './pages/CareerPage'
 import ContactPage from './pages/ContactPage'
+import { getSeoForPath } from './config/seo'
+import { applySeo } from './utils/applySeo'
 
 function App() {
+  useEffect(() => {
+    const updateSeo = () => {
+      applySeo(getSeoForPath(window.location.pathname))
+    }
+
+    updateSeo()
+    window.addEventListener('popstate', updateSeo)
+
+    return () => {
+      window.removeEventListener('popstate', updateSeo)
+    }
+  }, [])
+
   if (window.location.pathname === '/about') {
     return <AboutPage />
   }
