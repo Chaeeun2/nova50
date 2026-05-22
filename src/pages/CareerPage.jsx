@@ -10,12 +10,8 @@ import welfare06 from '../assets/career/welfare_06.png'
 import welfare07 from '../assets/career/welfare_07.png'
 import welfare08 from '../assets/career/welfare_08.png'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { revealDelay } from '../utils/reveal'
 import './CareerPage.css'
-
-const revealStagger = 120
-const revealDelay = (order = 0) => ({
-  '--reveal-delay': `${order * revealStagger}ms`,
-})
 
 const splitLines = (text) => text.split('\n')
 
@@ -239,7 +235,7 @@ function CareerPage() {
     <main className="career-page">
       <Header currentPage="career" forceDark={isCareerDarkActive} variant="light" />
 
-      <section className="career-hero" data-reveal-sequence data-reveal-sequence-immediate>
+      <section className="career-hero" data-reveal-section data-reveal-section-immediate>
         <p className="career-eyebrow" data-reveal-item style={revealDelay(0)}>
           {careerText.hero.eyebrow}
         </p>
@@ -261,15 +257,15 @@ function CareerPage() {
         </p>
       </section>
 
-      <section className="career-work-section">
-        <p className="career-eyebrow" data-reveal>
+      <section className="career-work-section" data-reveal-section>
+        <p className="career-eyebrow" data-reveal-item style={revealDelay(0)}>
           How We Work
         </p>
         <div className="career-work-grid">
           {careerText.work.map((item, index) => (
             <div
               className="career-work-reveal"
-              data-reveal
+              data-reveal-item
               key={item.id}
               style={revealDelay(index + 1)}
             >
@@ -298,18 +294,26 @@ function CareerPage() {
         </div>
       </section>
 
-      <section className={`career-welfare-section ${isCareerDarkActive ? 'is-dark-active' : ''}`}>
-        <h2 data-reveal-sequence>
-          <span className="career-welfare-title-line" data-reveal-item style={revealDelay(1)}>
+      <section
+        className={`career-welfare-section ${isCareerDarkActive ? 'is-dark-active' : ''}`}
+        data-reveal-section
+      >
+        <h2>
+          <span className="career-welfare-title-line" data-reveal-item style={revealDelay(0)}>
             Our
           </span>
-          <span className="career-welfare-title-line" data-reveal-item style={revealDelay(2)}>
+          <span className="career-welfare-title-line" data-reveal-item style={revealDelay(1)}>
             Welfare
           </span>
         </h2>
         <div className="career-welfare-grid">
           {careerText.welfare.map((item, index) => (
-            <article className="career-welfare-card" data-reveal key={item.title} style={revealDelay(index % 4)}>
+            <article
+              className="career-welfare-card"
+              data-reveal-item
+              key={item.title}
+              style={revealDelay(index + 2)}
+            >
               <img src={item.icon} alt="" aria-hidden="true" />
               <div>
                 <h3>{item.title}</h3>
@@ -320,18 +324,18 @@ function CareerPage() {
         </div>
       </section>
 
-      <section className="career-cta-section">
-        <h2 data-reveal>
+      <section className="career-cta-section" data-reveal-section>
+        <h2 data-reveal-item style={revealDelay(0)}>
           <span className="career-cta-title-pc">{careerText.cta.title.pc}</span>
           <span className="career-cta-title-mo">{careerText.cta.title.mo}</span>
         </h2>
-        <p className="career-cta-copy career-cta-copy-pc" data-reveal style={revealDelay(1)}>
+        <p className="career-cta-copy career-cta-copy-pc" data-reveal-item style={revealDelay(1)}>
           {renderPointText(careerText.cta.copy.pc)}
         </p>
-        <p className="career-cta-copy career-cta-copy-mo" data-reveal style={revealDelay(1)}>
+        <p className="career-cta-copy career-cta-copy-mo" data-reveal-item style={revealDelay(1)}>
           {renderPointText(careerText.cta.copy.mo)}
         </p>
-        <div className="career-openings" data-reveal style={revealDelay(2)}>
+        <div className="career-openings" data-reveal-item style={revealDelay(2)}>
           {careerText.cta.openings.map(([team, role]) => (
             <div key={team}>
               <strong>{team}</strong>
@@ -339,7 +343,7 @@ function CareerPage() {
             </div>
           ))}
         </div>
-        <div className="career-cta-actions" data-reveal style={revealDelay(3)}>
+        <div className="career-cta-actions" data-reveal-item style={revealDelay(3)}>
           <a href="../assets/career/NOVA50_지원서.docx" download>
             지원양식 다운로드
           </a>
@@ -348,7 +352,7 @@ function CareerPage() {
             <span>hello@nova-50.com</span>
           </button>
         </div>
-        <ul className="career-cta-notes" data-reveal style={revealDelay(4)}>
+        <ul className="career-cta-notes" data-reveal-item style={revealDelay(4)}>
           {careerText.cta.notes.map((note) => (
             <li key={note.pc}>
               <span className="member-project-dot" aria-hidden="true" />

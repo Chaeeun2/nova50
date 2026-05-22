@@ -5,7 +5,9 @@ import coreValue01 from '../assets/core_value_01.png'
 import coreValue02 from '../assets/core_value_02.png'
 import coreValue03 from '../assets/core_value_03.png'
 import serviceVideo from '../assets/about/services_sample.mp4'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { revealDelay } from '../utils/reveal'
 import './AboutPage.css'
 
 const memberImageModules = import.meta.glob('../assets/about/member_*.{png,jpg,jpeg,webp}', {
@@ -21,10 +23,6 @@ const memberImages = Object.entries(memberImageModules)
     src,
   }))
 
-const revealStagger = 120
-const revealDelay = (order = 0) => ({
-  '--reveal-delay': `${order * revealStagger}ms`,
-})
 const splitLines = (text) => text.split('\n')
 
 const aboutText = {
@@ -353,13 +351,14 @@ const renderEmphasisText = (text) =>
     return <span key={`${part}-${index}`}>{part}</span>
   })
 
-const renderIdentityTitleLines = (lines, keyPrefix) =>
+const renderIdentityTitleLines = (lines, keyPrefix, startIndex = 0, animate = true) =>
   lines.map((line, index) => (
     <span
       className="about-identity-title-line"
-      data-reveal-item
       key={`${keyPrefix}-${index}`}
-      style={revealDelay(index + 1)}
+      {...(animate
+        ? { 'data-reveal-item': true, style: revealDelay(startIndex + index) }
+        : {})}
     >
       {line}
     </span>
@@ -428,12 +427,13 @@ function AboutPage() {
   }))
   const activeMember = members[activeMemberIndex] ?? members[0]
   const displayedMember = members[displayedMemberIndex] ?? activeMember
+  const isMobileLayout = useMediaQuery('(max-width: 720px)')
   const identityTitleLinesPc = splitLines(aboutText.identity.title.pc)
   const identityTitleLinesMo = splitLines(aboutText.identity.title.mo)
-  const identityTitleRevealCount = Math.max(
-    identityTitleLinesPc.length,
-    identityTitleLinesMo.length,
-  )
+  const identityTitleLineCount = isMobileLayout
+    ? identityTitleLinesMo.length
+    : identityTitleLinesPc.length
+  const identityBodyRevealOffset = 1 + identityTitleLineCount
 
   useEffect(() => {
     serviceVideoRefs.current.forEach((video, index) => {
@@ -551,58 +551,79 @@ function AboutPage() {
     <main className="about-page">
       <Header currentPage="about" variant="light" />
 
-      <section className="about-identity-section">
-        <p className="about-page-eyebrow" data-reveal>
+      <section className="about-identity-section" data-reveal-section>
+        <p className="about-page-eyebrow" data-reveal-item style={revealDelay(0)}>
           {aboutText.identity.eyebrow}
         </p>
-        <h1 className="about-identity-title about-identity-title-pc" data-reveal-sequence>
-          {renderIdentityTitleLines(identityTitleLinesPc, 'title-pc')}
+        <h1 className="about-identity-title about-identity-title-pc">
+          {renderIdentityTitleLines(identityTitleLinesPc, 'title-pc', 1, !isMobileLayout)}
         </h1>
-        <h1 className="about-identity-title about-identity-title-mo" data-reveal-sequence>
-          {renderIdentityTitleLines(identityTitleLinesMo, 'title-mo')}
+        <h1 className="about-identity-title about-identity-title-mo">
+          {renderIdentityTitleLines(identityTitleLinesMo, 'title-mo', 1, isMobileLayout)}
         </h1>
         <div className="about-page-body">
           <span
             className="about-page-line"
             aria-hidden="true"
-            data-reveal
+            data-reveal-item
+            style={revealDelay(identityBodyRevealOffset)}
           />
           <h2
             className="about-identity-intro about-identity-intro-pc"
-            data-reveal
+            {...(!isMobileLayout
+              ? {
+                  'data-reveal-item': true,
+                  style: revealDelay(identityBodyRevealOffset + 1),
+                }
+              : {})}
           >
             {aboutText.identity.introTitle.pc}
           </h2>
           <h2
             className="about-identity-intro about-identity-intro-mo"
-            data-reveal
+            {...(isMobileLayout
+              ? {
+                  'data-reveal-item': true,
+                  style: revealDelay(identityBodyRevealOffset + 1),
+                }
+              : {})}
           >
             {aboutText.identity.introTitle.mo}
           </h2>
           <div
             className="identity-copy identity-copy-pc"
-            data-reveal
+            {...(!isMobileLayout
+              ? {
+                  'data-reveal-item': true,
+                  style: revealDelay(identityBodyRevealOffset + 2),
+                }
+              : {})}
           >
             {renderIdentityCopy(aboutText.identity.copy.pc, 'copy-pc')}
           </div>
           <div
             className="identity-copy identity-copy-mo"
-            data-reveal
+            {...(isMobileLayout
+              ? {
+                  'data-reveal-item': true,
+                  style: revealDelay(identityBodyRevealOffset + 2),
+                }
+              : {})}
           >
             {renderIdentityCopy(aboutText.identity.copy.mo, 'copy-mo')}
           </div>
         </div>
       </section>
 
-      <section className="about-core-section">
-        <p className="about-page-eyebrow" data-reveal>
+      <section className="about-core-section" data-reveal-section>
+        <p className="about-page-eyebrow" data-reveal-item style={revealDelay(0)}>
           Core Values
         </p>
         <div className="core-card-grid">
           {aboutText.coreValues.map((card, index) => (
             <article
               className="core-card"
-              data-reveal
+              data-reveal-item
               key={card.title}
               style={revealDelay(index + 1)}
             >
@@ -615,8 +636,8 @@ function AboutPage() {
         </div>
       </section>
 
-      <section className="about-services-section">
-        <p className="about-page-eyebrow" data-reveal>
+      <section className="about-services-section" data-reveal-section>
+        <p className="about-page-eyebrow" data-reveal-item style={revealDelay(0)}>
           Services
         </p>
         <div className="service-accordion">
@@ -630,7 +651,7 @@ function AboutPage() {
               <button
                 className="service-trigger"
                 type="button"
-                data-reveal
+                data-reveal-item
                 aria-expanded={activeServiceIndex === index}
                 style={revealDelay(index + 1)}
                 onClick={() =>
@@ -692,8 +713,8 @@ function AboutPage() {
         </div>
       </section>
 
-      <section className="about-organization-section">
-        <p className="about-page-eyebrow" data-reveal>
+      <section className="about-organization-section" data-reveal-section>
+        <p className="about-page-eyebrow" data-reveal-item style={revealDelay(0)}>
           {aboutText.organization.eyebrow}
         </p>
         <div className="organization-board">
@@ -707,7 +728,7 @@ function AboutPage() {
               <article
                 id={item.id}
                 className={blockClassName}
-                data-reveal
+                data-reveal-item
                 key={item.id}
                 style={revealDelay(index + 1)}
               >

@@ -12,12 +12,12 @@ import heroMo01 from '../assets/main_mo_01.jpg'
 import heroMo02 from '../assets/main_mo_02.jpg'
 import heroMo03 from '../assets/main_mo_03.jpg'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { revealDelay } from '../utils/reveal'
 import './MainPage.css'
 
 const heroSlides = [hero01, hero02, hero03]
 const heroSlidesMo = [heroMo01, heroMo02, heroMo03]
 const heroSlideDuration = 5000
-const revealStagger = 120
 const logoModules = import.meta.glob('../assets/logo/*.{png,jpg,jpeg,webp,svg}', {
   eager: true,
   query: '?url',
@@ -116,9 +116,6 @@ const cardImages = [
   { pc: worksCardBg, mo: worksCardBgMo },
   { pc: aboutCardBg, mo: aboutCardBgMo },
 ]
-const revealDelay = (order = 0) => ({
-  '--reveal-delay': `${order * revealStagger}ms`,
-})
 const splitLines = (text) => text.split('\n')
 
 function renderHeroTitleLines(lines, keyPrefix) {
@@ -219,7 +216,7 @@ function MainPage() {
             })}
           </div>
 
-          <div className="hero-copy" data-reveal-sequence data-reveal-sequence-immediate>
+          <div className="hero-copy" data-reveal-section data-reveal-section-immediate>
             <span
               className="progress-bar"
               aria-hidden="true"
@@ -239,11 +236,12 @@ function MainPage() {
       <section
         className={`about-section ${isPageBottomActive ? 'is-page-bottom-active' : ''}`}
         id="about"
+        data-reveal-section
       >
-        <p className="eyebrow" data-reveal>
+        <p className="eyebrow" data-reveal-item style={revealDelay(0)}>
           {mainPageText.section02.eyebrow}
         </p>
-        <h2 data-reveal-sequence>
+        <h2>
           {section02TitleLines.map((line, index) => (
             <span
               className="title-line"
@@ -260,20 +258,23 @@ function MainPage() {
           <span
             className="section-rule"
             aria-hidden="true"
-            data-reveal
+            data-reveal-item
+            style={revealDelay(section02TitleLines.length + 1)}
           />
-          <h3 data-reveal>
+          <h3 data-reveal-item style={revealDelay(section02TitleLines.length + 2)}>
             {mainPageText.section02.content.title}
           </h3>
           <p
             className="about-copy about-copy-pc"
-            data-reveal
+            data-reveal-item
+            style={revealDelay(section02TitleLines.length + 3)}
           >
             {mainPageText.section02.content.body.pc}
           </p>
           <p
             className="about-copy about-copy-mo"
-            data-reveal
+            data-reveal-item
+            style={revealDelay(section02TitleLines.length + 4)}
           >
             {mainPageText.section02.content.body.mo}
           </p>
@@ -284,11 +285,12 @@ function MainPage() {
         className={`card-section ${isPageBottomActive ? 'is-page-bottom-active' : ''}`}
         id="works"
         aria-label="Featured links"
+        data-reveal-section
       >
         {mainPageText.section03.cards.map((card, index) => (
           <a
             className={`feature-card ${index === 0 ? 'feature-card-wide' : ''}`}
-            data-reveal
+            data-reveal-item
             href={card.title === 'about' ? '/about' : '/works'}
             key={card.title}
             style={revealDelay(index)}
@@ -324,10 +326,10 @@ function MainPage() {
         ))}
       </section>
 
-      <section className="partners-section" id="contact">
+      <section className="partners-section" id="contact" data-reveal-section>
         <div className="partners-title">
-          <p data-reveal>{mainPageText.section04.caption}</p>
-          <h2 data-reveal style={revealDelay(1)}>
+          <p data-reveal-item style={revealDelay(0)}>{mainPageText.section04.caption}</p>
+          <h2 data-reveal-item style={revealDelay(1)}>
             <span>{mainPageText.section04.title.highlight}</span>
             {mainPageText.section04.title.text}
           </h2>
@@ -336,7 +338,7 @@ function MainPage() {
         <div
           className="partner-carousel-wrap"
           aria-label="Partner logos"
-          data-reveal
+          data-reveal-item
           style={revealDelay(2)}
         >
           <div className="partner-carousel partner-carousel--single">

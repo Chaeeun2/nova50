@@ -5,58 +5,42 @@ const observerOptions = {
   threshold: 0.05,
 }
 
+const scrollSectionSelector =
+  '[data-reveal-section]:not([data-reveal-section-immediate]), [data-reveal-sequence]:not([data-reveal-sequence-immediate])'
+
+const immediateSectionSelector =
+  '[data-reveal-section-immediate], [data-reveal-sequence-immediate]'
+
 function setupScrollReveals() {
-  const scrollSequences = document.querySelectorAll(
-    '[data-reveal-sequence]:not([data-reveal-sequence-immediate])',
-  )
+  const sections = document.querySelectorAll(scrollSectionSelector)
 
-  const sequenceObserver = new IntersectionObserver((entries) => {
+  const sectionObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) {
         return
       }
 
       entry.target.classList.add('is-revealed')
-      sequenceObserver.unobserve(entry.target)
+      sectionObserver.unobserve(entry.target)
     })
   }, observerOptions)
 
-  scrollSequences.forEach((element) => {
-    if (!element.classList.contains('is-revealed')) {
-      sequenceObserver.observe(element)
-    }
-  })
-
-  const revealTargets = document.querySelectorAll('[data-reveal]')
-
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) {
-        return
-      }
-
-      entry.target.classList.add('is-revealed')
-      revealObserver.unobserve(entry.target)
-    })
-  }, observerOptions)
-
-  revealTargets.forEach((target) => {
-    if (!target.classList.contains('is-revealed')) {
-      revealObserver.observe(target)
+  sections.forEach((section) => {
+    if (!section.classList.contains('is-revealed')) {
+      sectionObserver.observe(section)
     }
   })
 
   return () => {
-    sequenceObserver.disconnect()
-    revealObserver.disconnect()
+    sectionObserver.disconnect()
   }
 }
 
 export function useRevealAnimations({ refreshDeps = [] } = {}) {
   useEffect(() => {
     const runImmediateReveal = () => {
-      document.querySelectorAll('[data-reveal-sequence-immediate]').forEach((element) => {
-        element.classList.add('is-revealed')
+      document.querySelectorAll(immediateSectionSelector).forEach((section) => {
+        section.classList.add('is-revealed')
       })
     }
 

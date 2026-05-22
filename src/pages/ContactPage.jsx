@@ -6,12 +6,8 @@ import uploadIcon from '../assets/contact/upload.png'
 import { contactPrivacyPolicy } from '../data/privacyPolicy'
 import '../styles/ProjectModal.css'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { revealDelay } from '../utils/reveal'
 import './ContactPage.css'
-
-const revealStagger = 120
-const revealDelay = (order = 0) => ({
-  '--reveal-delay': `${order * revealStagger}ms`,
-})
 
 const contactTitle = (
   <>
@@ -131,13 +127,18 @@ function ContactPage() {
     <main className="contact-page">
       <Header currentPage="contact" forceDark={isLocationActive} variant="light" />
 
-      <section className="contact-hero-section">
-        <h1 data-reveal>
+      <section className="contact-hero-section" data-reveal-section>
+        <h1 data-reveal-item style={revealDelay(0)}>
           <span className="contact-title-pc">{contactTitle}</span>
           <span className="contact-title-mo">{contactTitle}</span>
         </h1>
-        <span className="contact-section-line" aria-hidden="true" data-reveal style={revealDelay(1)} />
-        <div className="contact-intro" data-reveal style={revealDelay(2)}>
+        <span
+          className="contact-section-line"
+          aria-hidden="true"
+          data-reveal-item
+          style={revealDelay(1)}
+        />
+        <div className="contact-intro" data-reveal-item style={revealDelay(2)}>
           <p className="contact-intro-lead-pc">{contactCopy.lead.pc}</p>
           <p className="contact-intro-lead-mo">{contactCopy.lead.mo}</p>
           <p className="contact-intro-follow-pc">{contactCopy.follow.pc}</p>
@@ -175,7 +176,12 @@ function ContactPage() {
           </p>
         </div>
 
-        <form className="contact-form" data-reveal style={revealDelay(3)} onSubmit={handleSubmit}>
+        <form
+          className="contact-form"
+          data-reveal-item
+          style={revealDelay(3)}
+          onSubmit={handleSubmit}
+        >
           <div className="contact-form-left">
             <label className="contact-form-order-1">
               <span>Your name</span>
@@ -233,10 +239,10 @@ function ContactPage() {
         </form>
       </section>
 
-      <section className="contact-location-section">
+      <section className="contact-location-section" data-reveal-section>
         <div className="contact-location-header">
-          <h2 data-reveal>Location</h2>
-          <div className="contact-location-info" data-reveal style={revealDelay(1)}>
+          <h2 data-reveal-item style={revealDelay(0)}>Location</h2>
+          <div className="contact-location-info" data-reveal-item style={revealDelay(1)}>
             <p>
               <span className="contact-address-copy">
                 {LOCATION_ADDRESSES.ko}
@@ -268,7 +274,7 @@ function ContactPage() {
             </p>
           </div>
         </div>
-        <div className="contact-map-frame" data-reveal style={revealDelay(2)}>
+        <div className="contact-map-frame" data-reveal-item style={revealDelay(2)}>
           <ContactMap />
         </div>
       </section>

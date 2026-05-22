@@ -1,9 +1,13 @@
+[data-reveal-section] [data-reveal-item],
+[data-reveal-section-immediate] [data-reveal-item],
 [data-reveal-sequence] [data-reveal-item],
 [data-reveal-sequence-immediate] [data-reveal-item] {
   opacity: 0;
   transform: translateY(var(--reveal-distance, 44px));
 }
 
+[data-reveal-section].is-revealed [data-reveal-item],
+[data-reveal-section-immediate].is-revealed [data-reveal-item],
 [data-reveal-sequence].is-revealed [data-reveal-item],
 [data-reveal-sequence-immediate].is-revealed [data-reveal-item] {
   animation: revealSlideIn var(--reveal-duration, 1.5s) var(--reveal-ease, cubic-bezier(0.22, 1, 0.36, 1))
@@ -24,8 +28,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-reveal-section] [data-reveal-item],
+  [data-reveal-section-immediate] [data-reveal-item],
   [data-reveal-sequence] [data-reveal-item],
   [data-reveal-sequence-immediate] [data-reveal-item],
+  [data-reveal-section].is-revealed [data-reveal-item],
+  [data-reveal-section-immediate].is-revealed [data-reveal-item],
   [data-reveal-sequence].is-revealed [data-reveal-item],
   [data-reveal-sequence-immediate].is-revealed [data-reveal-item] {
     animation: none;

@@ -12,17 +12,6 @@
   color: var(--color-black);
 }
 
-.contact-page [data-reveal] {
-  opacity: 0;
-  transform: translateY(var(--reveal-distance));
-}
-
-.contact-page [data-reveal].is-revealed {
-  animation: contactSlideInReveal var(--reveal-duration) var(--reveal-ease)
-    forwards;
-  animation-delay: var(--reveal-delay);
-}
-
 .contact-hero-section {
   padding: 227px var(--content-x) 220px;
 }
@@ -300,27 +289,6 @@
   object-fit: cover;
 }
 
-@keyframes contactSlideInReveal {
-  from {
-    opacity: 0;
-    transform: translateY(var(--reveal-distance));
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .contact-page [data-reveal],
-  .contact-page [data-reveal].is-revealed {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-}
-
 @media (max-width: 1400px) {
   .contact-hero-section h1,
   .contact-location-section h2 {
@@ -470,7 +438,7 @@
   }
 
   .contact-hero-section h1 {
-    font-size: 52px;
+    font-size: 56px;
     letter-spacing: -0.04em;
     line-height: 0.8;
   }

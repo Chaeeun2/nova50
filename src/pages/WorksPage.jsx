@@ -4,12 +4,8 @@ import Footer from '../components/Footer'
 import projectData from '../data/ProjectData'
 import '../styles/ProjectModal.css'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { revealDelay } from '../utils/reveal'
 import './WorksPage.css'
-
-const revealStagger = 120
-const revealDelay = (order = 0) => ({
-  '--reveal-delay': `${order * revealStagger}ms`,
-})
 
 const worksHeroTitle = {
   pc: 'What we did',
@@ -53,7 +49,7 @@ function WorksPage() {
       ? projectData
       : projectData.filter((project) => project.tags.some((tag) => activeFilters.includes(tag)))
 
-  useRevealAnimations({ refreshDeps: [activeFilters] })
+  useRevealAnimations()
 
   useEffect(() => {
     if (!selectedProject) {
@@ -160,20 +156,28 @@ function WorksPage() {
     <main className="works-page">
       <Header currentPage="works" variant="dark" />
 
-      <section className="works-hero">
-        <p className="works-eyebrow" data-reveal>
+      <section className="works-hero" data-reveal-section>
+        <p className="works-eyebrow" data-reveal-item style={revealDelay(0)}>
           Works
         </p>
-        <h1 className="works-hero-title works-hero-title-pc" data-reveal style={revealDelay(1)}>
+        <h1
+          className="works-hero-title works-hero-title-pc"
+          data-reveal-item
+          style={revealDelay(1)}
+        >
           {worksHeroTitle.pc}
         </h1>
-        <h1 className="works-hero-title works-hero-title-mo" data-reveal style={revealDelay(1)}>
+        <h1
+          className="works-hero-title works-hero-title-mo"
+          data-reveal-item
+          style={revealDelay(1)}
+        >
           {worksHeroTitle.mo}
         </h1>
       </section>
 
-      <section className="works-filter-section" aria-label="Works filters">
-        <div data-reveal>
+      <section className="works-filter-section" aria-label="Works filters" data-reveal-section>
+        <div data-reveal-item style={revealDelay(0)}>
           <button
             className={`works-filter-title ${isFilterOpen ? 'is-open' : ''}`}
             type="button"
@@ -195,7 +199,7 @@ function WorksPage() {
             <p>filter</p>
           </button>
         </div>
-        <div data-reveal style={revealDelay(1)}>
+        <div data-reveal-item style={revealDelay(1)}>
           <div className={`works-filter-panel ${isFilterOpen ? 'is-open' : ''}`} id="works-filter-list">
             <div className="works-filter-list">
               {filterTags.map((tag) => (
@@ -220,14 +224,9 @@ function WorksPage() {
         </div>
       </section>
 
-      <section
-        className="works-grid"
-        aria-label="Works list"
-        data-reveal
-        style={{ '--reveal-delay': '200ms' }}
-      >
-        {filteredProjects.map((project) => (
-          <article className="work-card" key={project.id}>
+      <section className="works-grid" aria-label="Works list" data-reveal-section>
+        {filteredProjects.map((project, index) => (
+          <article className="work-card" data-reveal-item key={project.id} style={revealDelay(index)}>
             <button
               className="work-card-thumbnail"
               type="button"
