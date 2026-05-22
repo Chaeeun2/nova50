@@ -1,0 +1,644 @@
+import { useEffect, useRef, useState } from 'react'
+import Header from '../components/Header'
+import Footer from '../components/Footer'
+import coreValue01 from '../assets/core_value_01.png'
+import coreValue02 from '../assets/core_value_02.png'
+import coreValue03 from '../assets/core_value_03.png'
+import serviceVideo from '../assets/about/services_sample.mp4'
+import './AboutPage.css'
+
+const memberImageModules = import.meta.glob('../assets/about/member_*.{png,jpg,jpeg,webp}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+
+const memberImages = Object.entries(memberImageModules)
+  .sort(([pathA], [pathB]) => pathA.localeCompare(pathB, undefined, { numeric: true }))
+  .map(([path, src]) => ({
+    id: path.split('/').pop().replace(/\.[^.]+$/, ''),
+    src,
+  }))
+
+const revealStagger = 120
+const revealDelay = (order = 0) => ({
+  '--reveal-delay': `${order * revealStagger}ms`,
+})
+const splitLines = (text) => text.split('\n')
+
+const aboutText = {
+  identity: {
+    eyebrow: 'Brand Identity',
+    title: `NOVA50 is
+where change
+begins`,
+    introTitle: `노바피프티에서
+변화가 시작됩니다.`,
+    copy: `*노바NOVA*는 새로운 빛이며,
+불현듯 나타나 가장 강렬하게 빛나는 순간입니다.
+NOVA50는 그 빛으로 사람들이 이전과 이후를 구분할 수 있는 경험을 설계합니다.
+
+*50*은 클라이언트의 니즈와 우리의 설계가 만나는 균형의 지점이며,
+상상과 현실, 경험과 미래가 교차하는 최소의 단위입니다.
+완전히 낯선 것이 아닌, 익숙함을 비틀어 감각을 깨우는 순간.
+
+*NOVA50*는 변화가 시작되는 그 지점을 만듭니다.`,
+  },
+  coreValues: [
+    {
+      title: `where
+insight
+begin`,
+      image: coreValue01,
+      headline: '브랜드의 경험이 시작됩니다.',
+      body: `모든 브랜드의 시작은 ‘다르게 보는 순간’에서 탄생합니다. 같은 출발선 위에서도, 우리는 전혀 다른 결과를 만들어냅니다.`,
+    },
+    {
+      title: `how
+we move
+people`,
+      image: coreValue02,
+      headline: '아이디어로 사람을 움직입니다.',
+      body: `우리는 스치는 경험이 아닌, 마음을 흔드는 순간을 만듭니다. 그리고 그 순간은 오래도록 기억됩니다.`,
+    },
+    {
+      title: `what
+build
+connection`,
+      image: coreValue03,
+      headline: '브랜드와 사람을 연결합니다.',
+      body: `모든 브랜드의 시작은 ‘다르게 보는 순간’에서 탄생합니다. 같은 출발선 위에서도, 우리는 전혀 다른 결과를 만들어냅니다.`,
+    },
+  ],
+  services: [
+    {
+      number: '01',
+      title: `ceremony`,
+      english: `We specialize in planning and managing a wide range of
+      ceremonies and commemorative events.
+With stable, purpose-driven operations, we deliver
+polished and reliable event experiences.`,
+      korean: `각종 기념식과 세리머니를 전문적으로 진행합니다.
+목적에 맞는 안정적이고 완성도 높은 운영을 제공합니다.`,
+      tags: [`Awards Ceremony`, `Opening & Closing Ceremony`, `Gala-Dinner`],
+    },
+    {
+      number: '02',
+      title: `Public event`,
+      english: `We create public events that help brands meet wider audiences.`,
+      korean: `공공성과 브랜드 메시지가 자연스럽게 만나는 장을 설계합니다.
+참여자와 지역, 브랜드가 함께 기억할 수 있는 경험을 만듭니다.`,
+      tags: [`Public Festival`, `Community Event`, `Government Event`],
+    },
+    {
+      number: '03',
+      title: `Product launch`,
+      english: `We design launch moments that make new products instantly memorable.`,
+      korean: `제품의 첫인상이 강렬하게 남도록 런칭 경험을 설계합니다.
+브랜드 메시지와 제품 가치를 하나의 장면으로 전달합니다.`,
+      tags: [`Launch Event`, `Brand Showcase`, `Media Event`],
+    },
+    {
+      number: '04',
+      title: `Hospitality`,
+      english: `We build hospitality programs that make guests feel carefully considered.`,
+      korean: `초대받은 순간부터 돌아가는 순간까지 세심하게 설계합니다.
+브랜드의 태도가 경험으로 전달되는 접점을 만듭니다.`,
+      tags: [`VIP Program`, `Guest Journey`, `Protocol`],
+    },
+    {
+      number: '05',
+      title: `Convention`,
+      english: `We operate conventions with clear structure and seamless flow.`,
+      korean: `복잡한 프로그램을 안정적인 흐름으로 구성합니다.
+참여자가 몰입할 수 있는 완성도 높은 컨벤션을 운영합니다.`,
+      tags: [`Conference`, `Forum`, `Business Session`],
+    },
+    {
+      number: '06',
+      title: `Exhibition`,
+      english: `We translate brand stories into spatial and visual experiences.`,
+      korean: `브랜드의 메시지를 공간과 시각 언어로 확장합니다.
+관람자가 직접 발견하고 기억하는 전시 경험을 만듭니다.`,
+      tags: [`Brand Exhibition`, `Booth Design`, `Experience Space`],
+    },
+    {
+      number: '07',
+      title: `Sports marketing`,
+      english: `We connect sports moments with brand energy and audience participation.`,
+      korean: `스포츠가 가진 에너지와 브랜드의 메시지를 연결합니다.
+현장의 열기와 참여가 오래 남는 마케팅 경험을 설계합니다.`,
+      tags: [`Sports Event`, `Fan Experience`, `Sponsorship Activation`],
+    },
+  ],
+  organization: [
+    {
+      title: 'nova 50',
+    },
+    {
+      title: 'innovation lab',
+    },
+    {
+      title: 'operation & growth office',
+      body: `Corporate Affairs Division
+Business Support Division
+NOVA50 Research Institute`,
+    },
+    {
+      title: `experience
+design group`,
+      body: `브랜드가 사람들의 일상에 깊이 스며들 수 있도록,
+프로모션부터 소셜마케팅까지 — 접점 하나하나를 경험으로 설계합니다.`,
+      teams: ['Team 07', 'Team 24', 'Team 25', 'Team 44', 'Team 49'],
+    },
+    {
+      title: `creative
+design lab`,
+      body: `브랜드가 가진 고유한 감성과 메시지를 시각 언어로 풀어냅니다.
+공간, 그래픽, 콘텐츠 전반에 걸쳐 일관된 브랜드 경험을 만들어냅니다.`,
+      teams: ['Creative Directing', 'Visual Design', 'Content Production'],
+    },
+  ],
+  members: [
+    {
+      id: 'member-01',
+      name: '최영완',
+      role: '대표이사 ㅣ CEO',
+      projects: [
+        'APEC 2025 KOREA 배우자 행사',
+        '한・아프리카 정상회의 공식환영만찬',
+        'UNICITY Global Leadership & Innovation Conference (태국)',
+        '강릉 세계합창대회 총괄 대행',
+        'World Cyber Games: 2020 Connected',
+        'AIA 생명 100주년 기념 마라톤 대회',
+        '평창 올림픽 현대자동차 호스피탈리티',
+      ],
+    },
+        {
+      id: 'member-02',
+      name: '김주완',
+      role: '상무 ㅣ Executive Director',
+      projects: [
+        '평창/토리노/북경 동계올림픽 성화봉송',
+        '밴쿠버/런던 동계올림픽 한국총괄 호스피탈리티',
+        'Youtube 크리에이티브 서밋 서울',
+        '여수엑스포 삼성관',
+        '양양 서핑 페스티벌',
+        '금호타이어 맨체스터 유나이티드 스폰서십',
+        'LOL 월드챔피언십',
+      ],
+    },
+            {
+      id: 'member-03',
+      name: '김경열',
+      role: '이사 ㅣ Director',
+      projects: [
+        'G-STAR 스마일게이트 B2B관',
+        'CES SAMSUNG DS관',
+        '서울 스마트 모빌리티 엑스포',
+        '서울 모터쇼 현대자동차 관',
+        'CASS BLUE PLAYGROUND',
+        '한국 암웨이 25주년 페스티벌',
+        '평창 동계올림픽 삼성 쇼케이스',
+      ],
+    },
+  ],
+  memberSection: {
+    eyebrow: 'NOVA50 Members',
+  },
+}
+
+const renderEmphasisText = (text) =>
+  text.split(/(\*[^*]+\*)/g).map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <strong key={`${part}-${index}`}>{part.slice(1, -1)}</strong>
+    }
+
+    return <span key={`${part}-${index}`}>{part}</span>
+  })
+
+function AboutPage() {
+  const [activeServiceIndex, setActiveServiceIndex] = useState(null)
+  const [activeMemberIndex, setActiveMemberIndex] = useState(0)
+  const [displayedMemberIndex, setDisplayedMemberIndex] = useState(0)
+  const [isMemberProfileVisible, setIsMemberProfileVisible] = useState(true)
+  const serviceVideoRefs = useRef([])
+  const isInitialMemberProfileRender = useRef(true)
+  const memberDragStartX = useRef(0)
+  const memberDragOffsetX = useRef(0)
+  const isMemberDragging = useRef(false)
+  const organization = aboutText.organization
+  const members = memberImages.map((image, index) => ({
+    ...(aboutText.members[index] ?? aboutText.members[0]),
+    image: image.src,
+    id: image.id,
+  }))
+  const activeMember = members[activeMemberIndex] ?? members[0]
+  const displayedMember = members[displayedMemberIndex] ?? activeMember
+  const identityTitleLines = splitLines(aboutText.identity.title)
+
+  useEffect(() => {
+    serviceVideoRefs.current.forEach((video, index) => {
+      if (!video) {
+        return
+      }
+
+      if (index === activeServiceIndex) {
+        video.play().catch(() => {})
+        return
+      }
+
+      video.pause()
+      video.currentTime = 0
+    })
+  }, [activeServiceIndex])
+
+  useEffect(() => {
+    const revealTargets = document.querySelectorAll('[data-reveal]')
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return
+          }
+
+          entry.target.classList.add('is-revealed')
+          revealObserver.unobserve(entry.target)
+        })
+      },
+      {
+        rootMargin: '0px 0px -12% 0px',
+        threshold: 0.15,
+      },
+    )
+
+    revealTargets.forEach((target) => revealObserver.observe(target))
+
+    return () => revealObserver.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (members.length <= 1) {
+      return undefined
+    }
+
+    const memberTimer = window.setTimeout(() => {
+      setActiveMemberIndex((currentIndex) => (currentIndex + 1) % members.length)
+    }, 10000)
+
+    return () => window.clearTimeout(memberTimer)
+  }, [activeMemberIndex, members.length])
+
+  useEffect(() => {
+    if (isInitialMemberProfileRender.current) {
+      isInitialMemberProfileRender.current = false
+      return undefined
+    }
+
+    setIsMemberProfileVisible(false)
+
+    const profileTimer = window.setTimeout(() => {
+      setDisplayedMemberIndex(activeMemberIndex)
+      setIsMemberProfileVisible(true)
+    }, 320)
+
+    return () => window.clearTimeout(profileTimer)
+  }, [activeMemberIndex])
+
+  const moveMemberSlide = (direction) => {
+    if (members.length <= 1) {
+      return
+    }
+
+    setActiveMemberIndex((currentIndex) => {
+      const nextIndex = currentIndex + direction
+      return (nextIndex + members.length) % members.length
+    })
+  }
+
+  const handleMemberProgressClick = (event) => {
+    if (members.length <= 1) {
+      return
+    }
+
+    const progressRect = event.currentTarget.getBoundingClientRect()
+    const clickRatio = (event.clientX - progressRect.left) / progressRect.width
+    const nextIndex = Math.min(
+      members.length - 1,
+      Math.max(0, Math.floor(clickRatio * members.length)),
+    )
+
+    setActiveMemberIndex(nextIndex)
+  }
+
+  const handleMemberDragStart = (event) => {
+    if (members.length <= 1 || event.target.closest('.member-arrow')) {
+      return
+    }
+
+    isMemberDragging.current = true
+    memberDragStartX.current = event.clientX
+    memberDragOffsetX.current = 0
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handleMemberDragMove = (event) => {
+    if (!isMemberDragging.current) {
+      return
+    }
+
+    memberDragOffsetX.current = event.clientX - memberDragStartX.current
+  }
+
+  const handleMemberDragEnd = (event) => {
+    if (!isMemberDragging.current) {
+      return
+    }
+
+    const dragOffset = memberDragOffsetX.current
+    isMemberDragging.current = false
+    memberDragStartX.current = 0
+    memberDragOffsetX.current = 0
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    if (Math.abs(dragOffset) < 60) {
+      return
+    }
+
+    moveMemberSlide(dragOffset < 0 ? 1 : -1)
+  }
+
+  return (
+    <main className="about-page">
+      <Header currentPage="about" variant="light" />
+
+      <section className="about-identity-section">
+        <p className="about-page-eyebrow" data-reveal>
+          {aboutText.identity.eyebrow}
+        </p>
+        <h1>
+          {identityTitleLines.map((line, index) => (
+            <span
+              className="about-identity-title-line"
+              data-reveal
+              key={line}
+              style={revealDelay(index + 1)}
+            >
+              {line}
+            </span>
+          ))}
+        </h1>
+        <div className="about-page-body">
+          <span
+            className="about-page-line"
+            aria-hidden="true"
+            data-reveal
+            style={revealDelay(identityTitleLines.length + 1)}
+          />
+          <h2 data-reveal style={revealDelay(identityTitleLines.length + 2)}>
+            {aboutText.identity.introTitle}
+          </h2>
+          <div className="identity-copy">
+            {aboutText.identity.copy.split('\n').map((line, lineIndex) =>
+              line === '' ? (
+                <span
+                  className="identity-copy-break"
+                  key={`identity-copy-${lineIndex}`}
+                  aria-hidden="true"
+                />
+              ) : (
+                <p
+                  data-reveal
+                  key={`identity-copy-${lineIndex}`}
+                  style={revealDelay(identityTitleLines.length + 3 + lineIndex)}
+                >
+                  {renderEmphasisText(line)}
+                </p>
+              ),
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="about-core-section">
+        <p className="about-page-eyebrow" data-reveal>
+          Core Values
+        </p>
+        <div className="core-card-grid">
+          {aboutText.coreValues.map((card, index) => (
+            <article
+              className="core-card"
+              data-reveal
+              key={card.title}
+              style={revealDelay(index + 1)}
+            >
+              <h2>{card.title}</h2>
+              <img src={card.image} alt="" aria-hidden="true" />
+              <h3>{card.headline}</h3>
+              <p>{card.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-services-section">
+        <p className="about-page-eyebrow" data-reveal>
+          Services
+        </p>
+        <div className="service-accordion">
+          {aboutText.services.map((service, index) => (
+            <article
+              className={`service-accordion-item ${
+                activeServiceIndex === index ? 'is-open' : ''
+              }`}
+              data-reveal
+              key={service.number}
+              style={revealDelay(index + 1)}
+            >
+              <button
+                className="service-trigger"
+                type="button"
+                aria-expanded={activeServiceIndex === index}
+                onClick={() =>
+                  setActiveServiceIndex((currentIndex) =>
+                    currentIndex === index ? null : index,
+                  )
+                }
+              >
+                <span>{service.number}</span>
+                <strong>{service.title}</strong>
+                <span className="service-toggle-icon" aria-hidden="true" />
+              </button>
+
+              <div className="service-panel" aria-hidden={activeServiceIndex !== index}>
+                <div className="service-panel-content">
+                  <div className="service-preview">
+                    <video
+                      aria-hidden="true"
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      ref={(video) => {
+                        serviceVideoRefs.current[index] = video
+                      }}
+                    >
+                      <source src={serviceVideo} type="video/mp4" />
+                    </video>
+                  </div>
+                  <div className="service-copy">
+                    <p>{service.english}</p>
+                    <p>{service.korean}</p>
+                    <div className="service-tags">
+                      {service.tags.map((tag) => (
+                        <span key={tag}>{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-organization-section">
+        <p className="about-page-eyebrow" data-reveal>
+          Organization
+        </p>
+        <div className="organization-board">
+          <article
+            className="organization-row organization-row-title"
+            data-reveal
+            style={revealDelay(1)}
+          >
+            <h2>{organization[0].title}</h2>
+          </article>
+
+          <article
+            className="organization-row organization-row-title"
+            data-reveal
+            style={revealDelay(2)}
+          >
+            <h2>{organization[1].title}</h2>
+          </article>
+
+          <article
+            className="organization-row organization-row-office"
+            data-reveal
+            style={revealDelay(3)}
+          >
+            <h2>{organization[2].title}</h2>
+            <p>{organization[2].body}</p>
+          </article>
+
+          <div className="organization-group-row">
+            {[organization[3], organization[4]].map((item, index) => (
+              <article
+                className="organization-group-card"
+                data-reveal
+                key={item.title}
+                style={revealDelay(index + 4)}
+              >
+                <h2>{item.title}</h2>
+                <div className="organization-group-content">
+                  <p>{item.body}</p>
+                  {item.teams && (
+                    <ul>
+                      {item.teams.map((team) => (
+                        <li key={team}>{team}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="about-member-section">
+        <p className="about-page-eyebrow" data-reveal>
+          {aboutText.memberSection.eyebrow}
+        </p>
+        {activeMember && (
+          <>
+            <div className="member-visual-group" data-reveal style={revealDelay(1)}>
+              <div
+                className="member-slider"
+                onPointerDown={handleMemberDragStart}
+                onPointerMove={handleMemberDragMove}
+                onPointerUp={handleMemberDragEnd}
+                onPointerCancel={handleMemberDragEnd}
+              >
+                <div
+                  className="member-track"
+                  style={{ transform: `translateX(-${activeMemberIndex * 100}%)` }}
+                >
+                  {members.map((member) => (
+                    <div className="member-slide" key={member.id}>
+                      <img src={member.image} alt={member.name} draggable="false" />
+                    </div>
+                  ))}
+                </div>
+                {members.length > 1 && (
+                  <>
+                    <button
+                      className="member-arrow member-arrow-prev"
+                      type="button"
+                      aria-label="Previous member"
+                      onClick={() => moveMemberSlide(-1)}
+                    />
+                    <button
+                      className="member-arrow member-arrow-next"
+                      type="button"
+                      aria-label="Next member"
+                      onClick={() => moveMemberSlide(1)}
+                    />
+                  </>
+                )}
+              </div>
+              {members.length > 1 && (
+                <button
+                  className="member-progress"
+                  type="button"
+                  aria-label="Select member slide"
+                  onClick={handleMemberProgressClick}
+                >
+                  <span
+                    style={{
+                      width: `${100 / members.length}%`,
+                      transform: `translateX(${activeMemberIndex * 100}%)`,
+                    }}
+                  />
+                </button>
+              )}
+            </div>
+            <div className={`member-profile ${isMemberProfileVisible ? 'is-visible' : ''}`}>
+              <div>
+                <h2>{displayedMember.name}</h2>
+                <p>{displayedMember.role}</p>
+              </div>
+              <ul>
+                {displayedMember.projects.map((project) => (
+                  <li key={project}>
+                    <span className="member-project-dot" aria-hidden="true" />
+                    <span>{project}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+      </section>
+
+      <Footer variant="light" />
+    </main>
+  )
+}
+
+export default AboutPage

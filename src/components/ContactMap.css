@@ -1,0 +1,71 @@
+.contact-map-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contact-map-label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 313px;
+  padding: 18px 24px 20px;
+  border-radius: 14px;
+  background: var(--color-black);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+  text-align: center;
+  pointer-events: none;
+}
+
+.contact-map-label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 100%);
+  border: 0 solid transparent;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid var(--color-black);
+}
+
+.contact-map-label strong {
+  color: var(--contact-point, #e1fb30);
+  font-weight: 900;
+}
+
+.contact-map-label span {
+  display: block;
+}
+
+.contact-map-pin {
+  display: block;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .contact-map-label {
+    min-width: 260px;
+    padding: 14px 18px 16px;
+    font-size: 16px;
+  }
+
+  .contact-map-label::after {
+    border-left-width: 8px;
+    border-right-width: 8px;
+    border-top-width: 10px;
+  }
+
+  .contact-map-pin {
+    width: 24px;
+    height: 34px;
+  }
+}
