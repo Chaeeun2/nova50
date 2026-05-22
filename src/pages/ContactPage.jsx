@@ -5,12 +5,37 @@ import ContactMap from '../components/ContactMap'
 import uploadIcon from '../assets/contact/upload.png'
 import { contactPrivacyPolicy } from '../data/privacyPolicy'
 import '../styles/ProjectModal.css'
+import { useRevealAnimations } from '../hooks/useRevealAnimations'
 import './ContactPage.css'
 
 const revealStagger = 120
 const revealDelay = (order = 0) => ({
   '--reveal-delay': `${order * revealStagger}ms`,
 })
+
+const contactTitle = (
+  <>
+    Conta<span className="contact-title-ct-gap">c</span>t us
+  </>
+)
+
+const contactCopy = {
+  lead: {
+    pc: `노바피프티는 사람과 브랜드를 직접 연결하는 순간을 만듭니다.
+새로운 아이디어, 감각적인 실행, 그리고 차별화된 경험으로
+당신의 브랜드가 빛나는 현장을 함께 완성하겠습니다.`,
+    mo: `노바피프티는 사람과 브랜드를 직접 연결하는 순간을
+만듭니다. 새로운 아이디어, 감각적인 실행, 그리고
+차별화된 경험으로 당신의 브랜드가 빛나는 현장을 함께
+완성하겠습니다.`,
+  },
+  follow: {
+    pc: `프로젝트 문의나 협업 제안은 언제든 아래 연락처로 남겨주세요.
+검토 후, 회신 드리겠습니다.`,
+    mo: `프로젝트 문의나 협업 제안은 언제든 아래 연락처로
+남겨주세요. 검토 후, 회신 드리겠습니다.`,
+  },
+}
 
 const LOCATION_ADDRESSES = {
   ko: '서울 강서구 마곡중앙로 165, 805호 (프라이빗타워1차)',
@@ -40,30 +65,7 @@ function ContactPage() {
   const [selectedFileName, setSelectedFileName] = useState('')
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
 
-  useEffect(() => {
-    const revealTargets = document.querySelectorAll('[data-reveal]')
-
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            return
-          }
-
-          entry.target.classList.add('is-revealed')
-          revealObserver.unobserve(entry.target)
-        })
-      },
-      {
-        rootMargin: '0px 0px -12% 0px',
-        threshold: 0.15,
-      },
-    )
-
-    revealTargets.forEach((target) => revealObserver.observe(target))
-
-    return () => revealObserver.disconnect()
-  }, [])
+  useRevealAnimations()
 
   useEffect(() => {
     const updateLocationState = () => {
@@ -130,52 +132,64 @@ function ContactPage() {
       <Header currentPage="contact" forceDark={isLocationActive} variant="light" />
 
       <section className="contact-hero-section">
-        <h1 data-reveal>Contact us</h1>
+        <h1 data-reveal>
+          <span className="contact-title-pc">{contactTitle}</span>
+          <span className="contact-title-mo">{contactTitle}</span>
+        </h1>
         <span className="contact-section-line" aria-hidden="true" data-reveal style={revealDelay(1)} />
         <div className="contact-intro" data-reveal style={revealDelay(2)}>
-          <p>
-            노바피프티는 사람과 브랜드를 직접 연결하는 순간을 만듭니다.
-            <br />
-            새로운 아이디어, 감각적인 실행, 그리고 차별화된 경험으로
-            <br />
-            당신의 브랜드가 빛나는 현장을 함께 완성하겠습니다.
-          </p>
-          <p>
-            프로젝트 문의나 협업 제안은 언제든 아래 연락처로 남겨주세요.
-            <br />
-            검토 후, 회신 드리겠습니다.
-          </p>
+          <p className="contact-intro-lead-pc">{contactCopy.lead.pc}</p>
+          <p className="contact-intro-lead-mo">{contactCopy.lead.mo}</p>
+          <p className="contact-intro-follow-pc">{contactCopy.follow.pc}</p>
+          <p className="contact-intro-follow-mo">{contactCopy.follow.mo}</p>
           <p className="contact-direct">
-            (+82) 2-6949-0550 ㅣ{' '}
-            <span className="contact-email-copy">
-              <a href="mailto:hello@nova-50.com">hello@nova-50.com</a>
-              <button
-                className="contact-copy-button"
-                type="button"
-                aria-label="이메일 주소 복사"
-                onClick={() => copyToClipboard('hello@nova-50.com')}
-              >
-                <CopyIcon />
-              </button>
+            <span className="contact-direct-pc">
+              (+82) 2-6949-0550 ㅣ{' '}
+              <span className="contact-email-copy">
+                <a href="mailto:hello@nova-50.com">hello@nova-50.com</a>
+                <button
+                  className="contact-copy-button"
+                  type="button"
+                  aria-label="이메일 주소 복사"
+                  onClick={() => copyToClipboard('hello@nova-50.com')}
+                >
+                  <CopyIcon />
+                </button>
+              </span>
+            </span>
+            <span className="contact-direct-mo">
+              (+82) 2-6949-0550
+              <br />
+              <span className="contact-email-copy">
+                <a href="mailto:hello@nova-50.com">hello@nova-50.com</a>
+                <button
+                  className="contact-copy-button"
+                  type="button"
+                  aria-label="이메일 주소 복사"
+                  onClick={() => copyToClipboard('hello@nova-50.com')}
+                >
+                  <CopyIcon />
+                </button>
+              </span>
             </span>
           </p>
         </div>
 
         <form className="contact-form" data-reveal style={revealDelay(3)} onSubmit={handleSubmit}>
           <div className="contact-form-left">
-            <label>
+            <label className="contact-form-order-1">
               <span>Your name</span>
               <input name="name" type="text" />
             </label>
-            <label>
+            <label className="contact-form-order-2">
               <span>Phone number</span>
               <input name="phone" type="tel" />
             </label>
-            <label>
+            <label className="contact-form-order-3">
               <span>Corporate info</span>
               <input name="company" type="text" />
             </label>
-            <label className="contact-consent">
+            <label className="contact-consent contact-form-order-7">
               <input name="privacy" type="checkbox" required />
               <span>
                 개인정보 수집 및 이용에 동의합니다.{' '}
@@ -184,17 +198,17 @@ function ContactPage() {
                 </button>
               </span>
             </label>
-            <button className="contact-submit" type="submit">
+            <button className="contact-submit contact-form-order-8" type="submit">
               SUBMIT <span aria-hidden="true">→</span>
             </button>
           </div>
 
           <div className="contact-form-right">
-            <label>
+            <label className="contact-form-order-4">
               <span>About your inquiry</span>
               <textarea name="inquiry" />
             </label>
-            <label className="contact-file-button">
+            <label className="contact-file-button contact-form-order-5">
               <input
                 name="attachment"
                 type="file"
@@ -205,10 +219,16 @@ function ContactPage() {
               <img className="contact-file-button-icon" src={uploadIcon} alt="" aria-hidden="true" />
               Upload files
             </label>
-            <p className="contact-file-name">
-              {selectedFileName || '첨부된 파일 이름.pdf'}
-              {selectedFileName && <button type="button" onClick={() => setSelectedFileName('')} aria-label="첨부 파일 삭제" />}
-            </p>
+            {selectedFileName && (
+              <p className="contact-file-name contact-form-order-6">
+                {selectedFileName}
+                <button
+                  type="button"
+                  onClick={() => setSelectedFileName('')}
+                  aria-label="첨부 파일 삭제"
+                />
+              </p>
+            )}
           </div>
         </form>
       </section>

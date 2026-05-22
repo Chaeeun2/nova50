@@ -9,6 +9,7 @@ import welfare05 from '../assets/career/welfare_05.png'
 import welfare06 from '../assets/career/welfare_06.png'
 import welfare07 from '../assets/career/welfare_07.png'
 import welfare08 from '../assets/career/welfare_08.png'
+import { useRevealAnimations } from '../hooks/useRevealAnimations'
 import './CareerPage.css'
 
 const revealStagger = 120
@@ -39,41 +40,66 @@ NOVA50`,
   },
   work: [
     {
-      title: `set
+      id: 'set-the-stage-themselves',
+      title: {
+        pc: `set
 the stage
 themselves`,
+        mo: `set the stage
+themselves`,
+      },
       tags: ['주도성', '빠른 실행', '아이디어 실행력'],
-      copy: `스스로 무대를 만들고
-빠르게 실행하는 사람`,
+      copy: `스스로
+      판을 만드는 사람`,
     },
     {
-      title: `find a way
+      id: 'find-a-way-to-make-it-happen',
+      title: {
+        pc: `find a way
 to make it
 happen`,
+        mo: `find a way to
+make it happen`,
+      },
       copy: `어떻게든
 결과를 만들어내는 사람`,
       tags: ['책임감', '완성도 집착', '마감 준수'],
     },
     {
-      title: `design
+      id: 'design-the-whole-picture',
+      title: {
+        pc: `design
 the whole
 picture`,
+        mo: `design the
+whole picture`,
+      },
       copy: `전체 흐름과 결과를
 설계하는 사람`,
       tags: ['기획력', '구조 설계', '문제 정의'],
     },
     {
-      title: `lift
+      id: 'lift-our-team-forward',
+      title: {
+        pc: `lift
 our team
 forward`,
+        mo: `lift our team
+forward`,
+      },
       copy: `팀의 속도를
 끌어올리는 사람`,
       tags: ['커뮤니케이션', '협업 능력', '조율 능력'],
     },
     {
-      title: `disruption
+      id: 'disruption-into-direction',
+      title: {
+        pc: `disruption
 into
 direction`,
+        mo: `disruption
+into direction`,
+      },
       copy: `변수를
 기회로 바꾸는 사람`,
       tags: ['유연성', '문제 해결력', '빠른 판단력', '적응력'],
@@ -128,10 +154,32 @@ direction`,
     },
   ],
   cta: {
-    title: 'add your 50',
-    copy: `우리는 완벽한 사람을 찾지 않습니다.
+    title: {
+      pc: 'add your 50',
+      mo: `add
+your 50`,
+    },
+    copy: {
+      pc: `우리는 완벽한 사람을 찾지 않습니다.
 하지만, 자신만의 방식으로 50을 더할 수 있는 사람을 찾습니다.
 *NOVA50에서 당신의 50을 보여주세요.*`,
+      mo: `우리는 완벽한 사람을 찾지 않습니다.
+하지만, 자신만의 방식으로
+50을 더할 수 있는 사람을 찾습니다.
+*NOVA50에서 당신의 50을 보여주세요.*`,
+    },
+    notes: [
+      {
+        pc: '지원서 양식을 다운로드 후, 작성하여 hello@nova-50.com으로 접수합니다.',
+        mo: `지원서 양식을 다운로드 후, 작성하여
+hello@nova-50.com으로 접수합니다.`,
+      },
+      {
+        pc: '플래너(경력) 및 디자이너(신입/경력) 지원 시 경력 기술서 또는 포트폴리오(자유양식)을 첨부해야 합니다.',
+        mo: `플래너(경력) 및 디자이너(신입/경력) 지원 시 경력 기술서
+또는 포트폴리오(자유양식)을 첨부해야 합니다.`,
+      },
+    ],
     openings: [
       ['Experience Design Group', 'Experience Planner'],
       ['Creative Design Lab', 'Graphic Designer'],
@@ -144,30 +192,7 @@ function CareerPage() {
   const [isCareerDarkActive, setIsCareerDarkActive] = useState(false)
   const heroTitleLines = splitLines(careerText.hero.title)
 
-  useEffect(() => {
-    const revealTargets = document.querySelectorAll('[data-reveal]')
-
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            return
-          }
-
-          entry.target.classList.add('is-revealed')
-          revealObserver.unobserve(entry.target)
-        })
-      },
-      {
-        rootMargin: '0px 0px -12% 0px',
-        threshold: 0.15,
-      },
-    )
-
-    revealTargets.forEach((target) => revealObserver.observe(target))
-
-    return () => revealObserver.disconnect()
-  }, [])
+  useRevealAnimations()
 
   useEffect(() => {
     const updateCareerDarkState = () => {
@@ -214,19 +239,24 @@ function CareerPage() {
     <main className="career-page">
       <Header currentPage="career" forceDark={isCareerDarkActive} variant="light" />
 
-      <section className="career-hero">
-        <p className="career-eyebrow" data-reveal>
+      <section className="career-hero" data-reveal-sequence data-reveal-sequence-immediate>
+        <p className="career-eyebrow" data-reveal-item style={revealDelay(0)}>
           {careerText.hero.eyebrow}
         </p>
         <h1>
           {heroTitleLines.map((line, index) => (
-            <span data-reveal key={line} style={revealDelay(index + 1)}>
+            <span data-reveal-item key={line} style={revealDelay(index + 1)}>
               {line}
             </span>
           ))}
         </h1>
-        <span className="career-section-line" aria-hidden="true" data-reveal style={revealDelay(4)} />
-        <p className="career-hero-copy" data-reveal style={revealDelay(5)}>
+        <span
+          className="career-section-line"
+          aria-hidden="true"
+          data-reveal-item
+          style={revealDelay(heroTitleLines.length + 1)}
+        />
+        <p className="career-hero-copy" data-reveal-item style={revealDelay(heroTitleLines.length + 2)}>
           {careerText.hero.copy}
         </p>
       </section>
@@ -240,7 +270,7 @@ function CareerPage() {
             <div
               className="career-work-reveal"
               data-reveal
-              key={item.title}
+              key={item.id}
               style={revealDelay(index + 1)}
             >
               <button
@@ -250,15 +280,17 @@ function CareerPage() {
                   setActiveWorkIndex((currentIndex) => (currentIndex === index ? null : index))
                 }
               >
-                <h2>{item.title}</h2>
-                {activeWorkIndex === index ? (
+                <h2>
+                  <span className="career-work-title-pc">{item.title.pc}</span>
+                  <span className="career-work-title-mo">{item.title.mo}</span>
+                </h2>
+                <p className="career-work-copy">{item.copy}</p>
+                {activeWorkIndex === index && (
                   <div className="career-work-tags">
                     {item.tags.map((tag) => (
                       <span key={tag}>{tag}</span>
                     ))}
                   </div>
-                ) : (
-                  <p>{item.copy}</p>
                 )}
               </button>
             </div>
@@ -267,10 +299,13 @@ function CareerPage() {
       </section>
 
       <section className={`career-welfare-section ${isCareerDarkActive ? 'is-dark-active' : ''}`}>
-        <h2 data-reveal>
-          Our
-          <br />
-          Welfare
+        <h2 data-reveal-sequence>
+          <span className="career-welfare-title-line" data-reveal-item style={revealDelay(1)}>
+            Our
+          </span>
+          <span className="career-welfare-title-line" data-reveal-item style={revealDelay(2)}>
+            Welfare
+          </span>
         </h2>
         <div className="career-welfare-grid">
           {careerText.welfare.map((item, index) => (
@@ -286,9 +321,15 @@ function CareerPage() {
       </section>
 
       <section className="career-cta-section">
-        <h2 data-reveal>{careerText.cta.title}</h2>
-        <p className="career-cta-copy" data-reveal style={revealDelay(1)}>
-          {renderPointText(careerText.cta.copy)}
+        <h2 data-reveal>
+          <span className="career-cta-title-pc">{careerText.cta.title.pc}</span>
+          <span className="career-cta-title-mo">{careerText.cta.title.mo}</span>
+        </h2>
+        <p className="career-cta-copy career-cta-copy-pc" data-reveal style={revealDelay(1)}>
+          {renderPointText(careerText.cta.copy.pc)}
+        </p>
+        <p className="career-cta-copy career-cta-copy-mo" data-reveal style={revealDelay(1)}>
+          {renderPointText(careerText.cta.copy.mo)}
         </p>
         <div className="career-openings" data-reveal style={revealDelay(2)}>
           {careerText.cta.openings.map(([team, role]) => (
@@ -308,10 +349,13 @@ function CareerPage() {
           </button>
         </div>
         <ul className="career-cta-notes" data-reveal style={revealDelay(4)}>
-          <li>지원서 양식을 다운로드 후, 작성하여 hello@nova-50.com으로 접수합니다.</li>
-          <li>
-            플래너(경력) 및 디자이너(신입/경력) 지원 시 경력 기술서 또는 포트폴리오(자유양식)을 첨부해야 합니다.
-          </li>
+          {careerText.cta.notes.map((note) => (
+            <li key={note.pc}>
+              <span className="member-project-dot" aria-hidden="true" />
+              <span className="career-cta-note-pc">{note.pc}</span>
+              <span className="career-cta-note-mo">{note.mo}</span>
+            </li>
+          ))}
         </ul>
       </section>
 

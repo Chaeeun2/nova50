@@ -2,14 +2,21 @@ import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import aboutCardBg from '../assets/Main_about_BG.png'
+import aboutCardBgMo from '../assets/about_BG_mo.jpg'
 import worksCardBg from '../assets/Main_works_BG.png'
+import worksCardBgMo from '../assets/works_BG_mo.jpg'
 import hero01 from '../assets/hero_01.jpg'
 import hero02 from '../assets/hero_02.jpg'
 import hero03 from '../assets/hero_03.jpg'
+import heroMo01 from '../assets/main_mo_01.jpg'
+import heroMo02 from '../assets/main_mo_02.jpg'
+import heroMo03 from '../assets/main_mo_03.jpg'
+import { useRevealAnimations } from '../hooks/useRevealAnimations'
 import './MainPage.css'
 
 const heroSlides = [hero01, hero02, hero03]
-const heroSlideDuration = 3000
+const heroSlidesMo = [heroMo01, heroMo02, heroMo03]
+const heroSlideDuration = 5000
 const revealStagger = 120
 const logoModules = import.meta.glob('../assets/logo/*.{png,jpg,jpeg,webp,svg}', {
   eager: true,
@@ -22,11 +29,37 @@ const partnerLogos = Object.entries(logoModules)
     name: path.split('/').pop().replace(/\.[^.]+$/, ''),
     src,
   }))
+const partnerLogoRowSplit = Math.ceil(partnerLogos.length / 2)
+const partnerLogoRows = [
+  partnerLogos.slice(0, partnerLogoRowSplit),
+  partnerLogos.slice(partnerLogoRowSplit),
+]
+
+function renderPartnerTrack(logos, trackKey) {
+  return (
+    <div className="partner-track" key={trackKey}>
+      {[...logos, ...logos].map((partner, index) => (
+        <div
+          className="partner-logo"
+          key={`${trackKey}-${partner.name}-${index}`}
+          aria-hidden={index >= logos.length}
+        >
+          <img src={partner.src} alt={index < logos.length ? partner.name : ''} />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 const mainPageText = {
   section01: {
-    title: `Unique experience
+    title: {
+      pc: `Unique experience
 designers`,
+      mo: `unique
+experience
+designers`,
+    },
   },
   section02: {
     eyebrow: 'NOVA50 — Unique Experience Designers',
@@ -79,11 +112,27 @@ feel different.`,
   },
 }
 
-const cardImages = [worksCardBg, aboutCardBg]
+const cardImages = [
+  { pc: worksCardBg, mo: worksCardBgMo },
+  { pc: aboutCardBg, mo: aboutCardBgMo },
+]
 const revealDelay = (order = 0) => ({
   '--reveal-delay': `${order * revealStagger}ms`,
 })
 const splitLines = (text) => text.split('\n')
+
+function renderHeroTitleLines(lines, keyPrefix) {
+  return lines.map((line, index) => (
+    <span
+      className="title-line"
+      data-reveal-item
+      key={`${keyPrefix}-${index}`}
+      style={revealDelay(index + 1)}
+    >
+      {line}
+    </span>
+  ))
+}
 
 function MainPage() {
   const [activeHeroSlide, setActiveHeroSlide] = useState(0)
@@ -92,7 +141,8 @@ function MainPage() {
   const renderedHeroSlides =
     heroSlides.length > 1 ? [...heroSlides, heroSlides[0]] : heroSlides
   const heroProgress = ((activeHeroSlide % heroSlides.length) + 1) / heroSlides.length
-  const heroTitleLines = splitLines(mainPageText.section01.title)
+  const heroTitleLinesPc = splitLines(mainPageText.section01.title.pc)
+  const heroTitleLinesMo = splitLines(mainPageText.section01.title.mo)
   const section02TitleLines = splitLines(mainPageText.section02.title)
 
   useEffect(() => {
@@ -107,30 +157,7 @@ function MainPage() {
     return () => window.clearInterval(slideTimer)
   }, [])
 
-  useEffect(() => {
-    const revealTargets = document.querySelectorAll('[data-reveal]')
-
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            return
-          }
-
-          entry.target.classList.add('is-revealed')
-          revealObserver.unobserve(entry.target)
-        })
-      },
-      {
-        rootMargin: '0px 0px -12% 0px',
-        threshold: 0.15,
-      },
-    )
-
-    revealTargets.forEach((target) => revealObserver.observe(target))
-
-    return () => revealObserver.disconnect()
-  }, [])
+  useRevealAnimations()
 
   useEffect(() => {
     const updatePageBottomState = () => {
@@ -167,43 +194,45 @@ function MainPage() {
 
   return (
     <main className="site">
-      <Header forceDark={isPageBottomActive} />
+      <Header currentPage="home" forceDark={isPageBottomActive} />
 
       <section className="hero-section" aria-label="NOVA50 main visual">
-        <div
-          className={`hero-slider ${isHeroTransitionEnabled ? '' : 'is-resetting'}`}
-          aria-hidden="true"
-          onTransitionEnd={handleHeroSlideEnd}
-          style={{ transform: `translateX(-${activeHeroSlide * 100}%)` }}
-        >
-          {renderedHeroSlides.map((slide, index) => (
-            <span
-              className="hero-slide"
-              key={`${slide}-${index}`}
-              style={{ backgroundImage: `url(${slide})` }}
-            />
-          ))}
-        </div>
-
-        <div className="hero-copy">
-          <span
-            className="progress-bar"
+        <div className="hero-frame">
+          <div
+            className={`hero-slider ${isHeroTransitionEnabled ? '' : 'is-resetting'}`}
             aria-hidden="true"
-            data-reveal
-            style={{ '--progress-ratio': heroProgress }}
-          />
-          <h1>
-            {heroTitleLines.map((line, index) => (
-              <span
-                className="title-line"
-                data-reveal
-                key={line}
-                style={revealDelay(index + 1)}
-              >
-                {line}
-              </span>
-            ))}
-          </h1>
+            onTransitionEnd={handleHeroSlideEnd}
+            style={{ transform: `translateX(-${activeHeroSlide * 100}%)` }}
+          >
+            {renderedHeroSlides.map((slide, index) => {
+              const slideIndex = index % heroSlides.length
+              return (
+                <span
+                  className="hero-slide"
+                  key={`${slide}-${index}`}
+                  style={{
+                    '--hero-bg-pc': `url(${slide})`,
+                    '--hero-bg-mo': `url(${heroSlidesMo[slideIndex]})`,
+                  }}
+                />
+              )
+            })}
+          </div>
+
+          <div className="hero-copy" data-reveal-sequence data-reveal-sequence-immediate>
+            <span
+              className="progress-bar"
+              aria-hidden="true"
+              data-reveal-item
+              style={{ '--progress-ratio': heroProgress, ...revealDelay(0) }}
+            />
+            <h1 className="hero-title hero-title-pc">
+              {renderHeroTitleLines(heroTitleLinesPc, 'hero-pc')}
+            </h1>
+            <h1 className="hero-title hero-title-mo">
+              {renderHeroTitleLines(heroTitleLinesMo, 'hero-mo')}
+            </h1>
+          </div>
         </div>
       </section>
 
@@ -214,11 +243,11 @@ function MainPage() {
         <p className="eyebrow" data-reveal>
           {mainPageText.section02.eyebrow}
         </p>
-        <h2>
+        <h2 data-reveal-sequence>
           {section02TitleLines.map((line, index) => (
             <span
               className="title-line"
-              data-reveal
+              data-reveal-item
               key={line}
               style={revealDelay(index + 1)}
             >
@@ -267,7 +296,10 @@ function MainPage() {
             key={card.title}
             style={revealDelay(index)}
           >
-            <img src={cardImages[index]} alt="" aria-hidden="true" />
+            <picture>
+              <source media="(max-width: 720px)" srcSet={cardImages[index].mo} />
+              <img src={cardImages[index].pc} alt="" aria-hidden="true" />
+            </picture>
             <span className="card-content">
               <strong>{card.title}</strong>
               <span>{card.description}</span>
@@ -305,21 +337,18 @@ function MainPage() {
         </div>
 
         <div
-          className="partner-carousel"
+          className="partner-carousel-wrap"
           aria-label="Partner logos"
           data-reveal
           style={revealDelay(2)}
         >
-          <div className="partner-track">
-            {[...partnerLogos, ...partnerLogos].map((partner, index) => (
-              <div
-                className="partner-logo"
-                key={`${partner.name}-${index}`}
-                aria-hidden={index >= partnerLogos.length}
-              >
-                <img src={partner.src} alt={index < partnerLogos.length ? partner.name : ''} />
-              </div>
-            ))}
+          <div className="partner-carousel partner-carousel--single">
+            {renderPartnerTrack(partnerLogos, 'pc')}
+          </div>
+          <div className="partner-carousel partner-carousel--dual">
+            {partnerLogoRows.map((rowLogos, rowIndex) =>
+              renderPartnerTrack(rowLogos, `partner-track-mo-${rowIndex}`),
+            )}
           </div>
         </div>
       </section>

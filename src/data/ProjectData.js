@@ -10,8 +10,12 @@ import works_204 from '../assets/works/works_204.jpg'
 const projectData = [
   {
     id: 'night-of-youngliving-2025-01',
-    koreanTitle: '영리빙의 밤 2025',
-    englishTitle: 'Night of Youngliving 2025',
+    koreanTitle: '영리빙코리아 2025',
+    modalKoreanTitle: '영리빙의 밤 2025',
+    englishTitle: {
+      pc: 'Night of Youngliving 2025',
+      mo: 'Night of Youngliving 2025',
+    },
     date: '2025년 12월',
     client: '영리빙',
     location: '원덤 그랜드 부산',
@@ -23,7 +27,10 @@ const projectData = [
   {
     id: 'fate-trigger-showcase-in-korea-01',
     koreanTitle: 'FATE TRIGGER 한국 쇼케이스',
-    englishTitle: 'FATE TRIGGER Showcase in Korea',
+    englishTitle: {
+      pc: 'FATE TRIGGER Showcase in Korea',
+      mo: 'FATE TRIGGER Showcase in\nKorea',
+    },
     date: '2026년 2월',
     client: '텐센트 / SOOP',
     location: '잠실 DN 콜로세움',

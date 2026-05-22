@@ -3,12 +3,23 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import projectData from '../data/ProjectData'
 import '../styles/ProjectModal.css'
+import { useRevealAnimations } from '../hooks/useRevealAnimations'
 import './WorksPage.css'
 
 const revealStagger = 120
 const revealDelay = (order = 0) => ({
   '--reveal-delay': `${order * revealStagger}ms`,
 })
+
+const worksHeroTitle = {
+  pc: 'What we did',
+  mo: 'WHAT\nWE DID',
+}
+
+const getEnglishTitle = (title) => (typeof title === 'string' ? title : title.pc)
+
+const getEnglishTitleMo = (title) =>
+  typeof title === 'string' ? title : title.mo
 
 const filterTags = [
   { label: 'ALL', tone: 'white' },
@@ -42,30 +53,7 @@ function WorksPage() {
       ? projectData
       : projectData.filter((project) => project.tags.some((tag) => activeFilters.includes(tag)))
 
-  useEffect(() => {
-    const revealTargets = document.querySelectorAll('[data-reveal]')
-
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            return
-          }
-
-          entry.target.classList.add('is-revealed')
-          revealObserver.unobserve(entry.target)
-        })
-      },
-      {
-        rootMargin: '0px 0px -12% 0px',
-        threshold: 0.15,
-      },
-    )
-
-    revealTargets.forEach((target) => revealObserver.observe(target))
-
-    return () => revealObserver.disconnect()
-  }, [activeFilters])
+  useRevealAnimations({ refreshDeps: [activeFilters] })
 
   useEffect(() => {
     if (!selectedProject) {
@@ -176,8 +164,11 @@ function WorksPage() {
         <p className="works-eyebrow" data-reveal>
           Works
         </p>
-        <h1 data-reveal style={revealDelay(1)}>
-          What we did
+        <h1 className="works-hero-title works-hero-title-pc" data-reveal style={revealDelay(1)}>
+          {worksHeroTitle.pc}
+        </h1>
+        <h1 className="works-hero-title works-hero-title-mo" data-reveal style={revealDelay(1)}>
+          {worksHeroTitle.mo}
         </h1>
       </section>
 
@@ -241,12 +232,15 @@ function WorksPage() {
               className="work-card-thumbnail"
               type="button"
               onClick={() => openProjectModal(project)}
-              aria-label={`${project.englishTitle} detail`}
+              aria-label={`${getEnglishTitle(project.englishTitle)} detail`}
             >
-              <img src={project.thumbnail} alt={project.englishTitle} />
+              <img src={project.thumbnail} alt={getEnglishTitle(project.englishTitle)} />
             </button>
             <p>{project.koreanTitle}</p>
-            <h2>{project.englishTitle}</h2>
+            <h2 className="work-card-title">
+              <span className="work-card-title-pc">{getEnglishTitle(project.englishTitle)}</span>
+              <span className="work-card-title-mo">{getEnglishTitleMo(project.englishTitle)}</span>
+            </h2>
             <div className="work-card-tags">
               {project.tags.slice(0, 3).map((tag) => (
                 <span key={tag}>{tag}</span>
@@ -290,7 +284,7 @@ function WorksPage() {
                   <div className="project-modal-slide" key={image}>
                     <img
                       src={image}
-                      alt={`${selectedProject.englishTitle} ${index + 1}`}
+                      alt={`${getEnglishTitle(selectedProject.englishTitle)} ${index + 1}`}
                       draggable="false"
                     />
                   </div>
@@ -317,8 +311,15 @@ function WorksPage() {
             </div>
             <div className="project-modal-content">
               <div className="project-modal-title">
-                <p>{selectedProject.koreanTitle}</p>
-                <h2 id="project-modal-title">{selectedProject.englishTitle}</h2>
+                <p>{selectedProject.modalKoreanTitle ?? selectedProject.koreanTitle}</p>
+                <h2 id="project-modal-title">
+                  <span className="project-modal-title-pc">
+                    {getEnglishTitle(selectedProject.englishTitle)}
+                  </span>
+                  <span className="project-modal-title-mo">
+                    {getEnglishTitleMo(selectedProject.englishTitle)}
+                  </span>
+                </h2>
               </div>
               <dl className="project-modal-info">
                 <div>

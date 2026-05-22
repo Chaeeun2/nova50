@@ -1,4 +1,5 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+@import "./styles/reveal.css";
 
 :root {
   --color-white: #ffffff;
@@ -10,6 +11,8 @@
   --font-display:
     "futura-pt", "Arial Black", "Helvetica Neue", var(--font-body);
   --site-max-width: 1920px;
+  --z-header: 1000;
+  --z-mobile-menu: 1100;
   --page-x: clamp(24px, 3.5vw, 60px);
   --content-x: max(
     var(--page-x),
