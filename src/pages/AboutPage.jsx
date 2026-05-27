@@ -113,8 +113,10 @@ With stable, purpose-driven operations, we deliver polished and reliable event e
       number: '02',
       title: { pc: `Public event`, mo: `Public event` },
       english: {
-        pc: `We create moments where people gather, engage, and share meaningful experiences.
-Through compelling events that inspire participation, we bring every venue to life.`,
+        pc: `We create moments where people gather,
+        engage, and share meaningful experiences.
+Through compelling events that inspire participation,
+we bring every venue to life.`,
         mo: `We create moments where people gather, engage, and share meaningful experiences.
 Through compelling events that inspire participation, we bring every venue to life.`,
       },
@@ -148,7 +150,8 @@ a lasting impression.`,
       number: '04',
       title: { pc: `Hospitality`, mo: `Hospitality` },
       english: {
-        pc: `We deliver tailored hospitality programs for VIPs and valued customers, strengthening brand connection.
+        pc: `We deliver tailored hospitality programs for VIPs
+        and valued customers, strengthening brand connection.
 With thoughtful details, we create truly exceptional experiences.`,
         mo: `We deliver tailored hospitality programs for VIPs and valued customers, strengthening brand connection.
 With thoughtful details, we create truly exceptional experiences.`,
@@ -203,7 +206,8 @@ we create immersive experiences.`,
       title: { pc: `Sports marketing`, mo: `sports marketing` },
       english: {
         pc: `We plan and execute sports-based marketing strategies.
-By connecting brands and fans in authentic ways, we expand meaningful touchpoints.`,
+By connecting brands and fans in authentic ways,
+we expand meaningful touchpoints.`,
         mo: `We plan and execute sports-based marketing strategies.
 By connecting brands and fans in authentic ways,
 we expand meaningful touchpoints.`,
