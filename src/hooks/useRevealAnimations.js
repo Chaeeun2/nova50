@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 const observerOptions = {
   rootMargin: '0px 0px -12% 0px',
@@ -11,7 +11,23 @@ const scrollSectionSelector =
 const immediateSectionSelector =
   '[data-reveal-section-immediate], [data-reveal-sequence-immediate]'
 
-function setupScrollReveals() {
+function markSectionRevealed(section, revealedSections) {
+  revealedSections.add(section)
+  section.classList.add('is-revealed')
+}
+
+function restoreRevealedSections(revealedSections) {
+  revealedSections.forEach((section) => {
+    if (document.contains(section)) {
+      section.classList.add('is-revealed')
+      return
+    }
+
+    revealedSections.delete(section)
+  })
+}
+
+function setupScrollReveals(revealedSections) {
   const sections = document.querySelectorAll(scrollSectionSelector)
 
   const sectionObserver = new IntersectionObserver((entries) => {
@@ -20,15 +36,18 @@ function setupScrollReveals() {
         return
       }
 
-      entry.target.classList.add('is-revealed')
+      markSectionRevealed(entry.target, revealedSections)
       sectionObserver.unobserve(entry.target)
     })
   }, observerOptions)
 
   sections.forEach((section) => {
-    if (!section.classList.contains('is-revealed')) {
-      sectionObserver.observe(section)
+    if (revealedSections.has(section) || section.classList.contains('is-revealed')) {
+      markSectionRevealed(section, revealedSections)
+      return
     }
+
+    sectionObserver.observe(section)
   })
 
   return () => {
@@ -37,10 +56,12 @@ function setupScrollReveals() {
 }
 
 export function useRevealAnimations({ refreshDeps = [] } = {}) {
+  const revealedSectionsRef = useRef(new Set())
+
   useEffect(() => {
     const runImmediateReveal = () => {
       document.querySelectorAll(immediateSectionSelector).forEach((section) => {
-        section.classList.add('is-revealed')
+        markSectionRevealed(section, revealedSectionsRef.current)
       })
     }
 
@@ -48,5 +69,9 @@ export function useRevealAnimations({ refreshDeps = [] } = {}) {
     requestAnimationFrame(runImmediateReveal)
   }, [])
 
-  useEffect(() => setupScrollReveals(), refreshDeps)
+  useEffect(() => setupScrollReveals(revealedSectionsRef.current), refreshDeps)
+
+  useLayoutEffect(() => {
+    restoreRevealedSections(revealedSectionsRef.current)
+  })
 }
