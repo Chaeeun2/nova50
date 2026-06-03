@@ -15,8 +15,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { createEmptyCareerContent } from '../../src/data/pageContentDefaults'
 import {
-  careerText,
   formatCareerNotesForEditor,
   normalizeCareerCta,
   normalizeCareerCtaOpenings,
@@ -37,7 +37,7 @@ import {
 } from '../utils/r2Media'
 
 function cloneDefaultContent() {
-  return JSON.parse(JSON.stringify(careerText))
+  return createEmptyCareerContent()
 }
 
 function mergeContent(content) {

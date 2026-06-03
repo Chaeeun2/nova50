@@ -15,7 +15,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { aboutText } from '../../src/pages/AboutPage'
+import { createEmptyAboutContent } from '../../src/data/pageContentDefaults'
 import {
   getServiceDisplayNumber,
   mergeAboutPageContent,
@@ -44,7 +44,7 @@ import {
 } from '../utils/r2Media'
 
 function cloneDefaultContent() {
-  return JSON.parse(JSON.stringify(aboutText))
+  return createEmptyAboutContent()
 }
 
 function mergeContent(content) {

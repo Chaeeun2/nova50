@@ -1,4 +1,4 @@
-/** 메인 Section2 카드 배경 — 절대 경로(또는 https:// 전체 URL)로 교체 */
+/** 메인 Section3 works / about 카드 배경 — 고정 URL */
 export const MAIN_CARD_IMAGE_URLS = {
   works: {
     pc: 'https://pub-724687d8ff2b4ccea216d8af4ba19301.r2.dev/main/main_01.png',
@@ -10,89 +10,50 @@ export const MAIN_CARD_IMAGE_URLS = {
   },
 }
 
+const MAIN_CARD_IMAGE_BY_PATH = {
+  '/works': MAIN_CARD_IMAGE_URLS.works,
+  '/about': MAIN_CARD_IMAGE_URLS.about,
+}
+
+export function resolveMainCardImage(card = {}, index = 0) {
+  const path = card.path || ''
+  const titleKey = String(card.title?.pc || card.title?.mo || card.title || '')
+    .trim()
+    .toLowerCase()
+
+  const hardcoded =
+    MAIN_CARD_IMAGE_BY_PATH[path] ||
+    (titleKey === 'works' ? MAIN_CARD_IMAGE_URLS.works : null) ||
+    (titleKey === 'about' ? MAIN_CARD_IMAGE_URLS.about : null) ||
+    (index === 0 ? MAIN_CARD_IMAGE_URLS.works : null) ||
+    (index === 1 ? MAIN_CARD_IMAGE_URLS.about : null)
+
+  if (hardcoded) {
+    return { pc: hardcoded.pc, mo: hardcoded.mo }
+  }
+
+  return toResponsiveText(card.image, { pc: '', mo: '' })
+}
+
 export const defaultMainPageContent = {
   section01: {
-    title: {
-      pc: `Unique experience
-designers`,
-      mo: `unique
-experience
-designers`,
-    },
+    title: { pc: '', mo: '' },
   },
   section02: {
-    eyebrow: {
-      pc: 'NOVA50 — Unique Experience Designers',
-      mo: 'NOVA50 — Unique Experience Designers',
-    },
-    title: {
-      pc: `We design
-the moment
-things
-feel different.`,
-      mo: `We design
-the moment
-things
-feel different.`,
-    },
+    eyebrow: { pc: '', mo: '' },
+    title: { pc: '', mo: '' },
     content: {
-      title: {
-        pc: `변화가 느껴지는 순간,
-그 시작에 NOVA50가 있습니다.`,
-        mo: `변화가 느껴지는 순간,
-그 시작에 NOVA50가 있습니다.`,
-      },
-      body: {
-        pc: `새로운 경험은 기억에 남고, 특별한 경험은 사람을 변화시킵니다.
-우리는 넓은 시야와 깊은 통찰로 문제의 본질을 이해하고,
-단순한 솔루션을 넘어 사람들의 마음을 움직이는 경험을 만듭니다.
-
-예상을 뛰어넘는 순간, 오래도록 기억에 남는 경험.
-그 경험이 노바피프티가 존재하는 이유입니다.`,
-        mo: `새로운 경험은 기억에 남고,
-특별한 경험은 사람을 변화시킵니다.
-우리는 넓은 시야와 깊은 통찰로
-문제의 본질을 이해하고,
-단순한 솔루션을 넘어 사람들의 마음을
-움직이는 경험을 만듭니다.
-
-예상을 뛰어넘는 순간,
-오래도록 기억에 남는 경험.
-그 경험이 노바피프티가 존재하는 이유입니다.`,
-      },
+      title: { pc: '', mo: '' },
+      body: { pc: '', mo: '' },
     },
   },
   section03: {
-    cards: [
-      {
-        title: { pc: 'works', mo: 'works' },
-        description: {
-          pc: 'Beyond solutions, create a mind-moving experience.',
-          mo: 'Beyond solutions, create a mind-moving experience.',
-        },
-        path: '/works',
-        image: { ...MAIN_CARD_IMAGE_URLS.works },
-      },
-      {
-        title: { pc: 'about', mo: 'about' },
-        description: { pc: 'Change begins in NOVA50.', mo: 'Change begins in NOVA50.' },
-        path: '/about',
-        image: { ...MAIN_CARD_IMAGE_URLS.about },
-      },
-    ],
+    cards: [],
   },
   section04: {
-    caption: {
-      pc: 'NOVA50 is where change begins.',
-      mo: 'NOVA50 is where change begins.',
-    },
+    caption: { pc: '', mo: '' },
     title: {
-      text: {
-        pc: `*변화*가 시작되는 지점을
-함께 만들어갑니다.`,
-        mo: `*변화*가 시작되는 지점을
-함께 만들어갑니다.`,
-      },
+      text: { pc: '', mo: '' },
     },
   },
 }
@@ -168,14 +129,19 @@ export function normalizeMainPageContent(content = {}) {
       ...defaultContent.section03,
       ...content.section03,
       cards: (content.section03?.cards || defaultContent.section03.cards).map((card, index) => {
-        const defaultCard = defaultContent.section03.cards[index] || defaultContent.section03.cards[0]
+        const defaultCard = defaultContent.section03.cards[index] || {
+          title: { pc: '', mo: '' },
+          description: { pc: '', mo: '' },
+          path: '',
+          image: { pc: '', mo: '' },
+        }
 
         return {
           ...defaultCard,
           ...card,
           title: toResponsiveText(card.title, defaultCard.title),
           description: toResponsiveText(card.description, defaultCard.description),
-          image: toResponsiveText(card.image, defaultCard.image),
+          image: resolveMainCardImage({ ...defaultCard, ...card }, index),
         }
       }),
     },

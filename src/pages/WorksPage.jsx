@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import projectData from '../data/ProjectData'
 import {
   buildWorksFilterTagsForUi,
   normalizeWorksFilterTags,
-  worksFilterTags as defaultWorksFilterTags,
 } from '../data/worksFilterTags'
 import '../styles/ProjectModal.css'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
@@ -31,8 +29,8 @@ const getEnglishTitle = (title) => {
 }
 
 function WorksPage() {
-  const [projects, setProjects] = useState(projectData)
-  const [filterTags, setFilterTags] = useState(defaultWorksFilterTags)
+  const [projects, setProjects] = useState([])
+  const [filterTags, setFilterTags] = useState(() => buildWorksFilterTagsForUi())
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState([])
   const [selectedProject, setSelectedProject] = useState(null)

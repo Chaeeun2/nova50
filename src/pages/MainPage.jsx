@@ -11,6 +11,7 @@ import {
   defaultMainPageContent,
   getResponsiveText,
   normalizeMainPageContent,
+  resolveMainCardImage,
 } from '../data/mainPageContent'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
@@ -54,13 +55,12 @@ function renderPartnerTrack(logos, trackKey) {
 
 const splitLines = (text) => text.split('\n')
 
-function getCardImageSources(card, index, cards) {
-  const fallbackCard = cards[index] || cards[0]
-  const fallbackImage = fallbackCard?.image || { pc: '', mo: '' }
+function getCardImageSources(card, index) {
+  const image = resolveMainCardImage(card, index)
 
   return {
-    pc: getResponsiveText(card.image, 'pc') || getResponsiveText(fallbackImage, 'pc'),
-    mo: getResponsiveText(card.image, 'mo') || getResponsiveText(fallbackImage, 'mo'),
+    pc: image.pc,
+    mo: image.mo,
   }
 }
 
@@ -395,11 +395,7 @@ function MainPage() {
         data-reveal-section
       >
         {mainPageText.section03.cards.map((card, index) => {
-          const cardImages = getCardImageSources(
-            card,
-            index,
-            mainPageText.section03.cards,
-          )
+          const cardImages = getCardImageSources(card, index)
 
           return (
           <a

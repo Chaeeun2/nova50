@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import ContactMap from '../components/ContactMap'
 import uploadIcon from '../assets/contact/upload.png'
+import { createEmptyContactContent } from '../data/pageContentDefaults'
 import { contactPrivacyPolicy } from '../data/privacyPolicy'
 import '../styles/ProjectModal.css'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
@@ -19,35 +20,7 @@ const contactTitle = (
   </>
 )
 
-const contactCopy = {
-  lead: {
-    pc: `노바피프티는 사람과 브랜드를 직접 연결하는 순간을 만듭니다.
-새로운 아이디어, 감각적인 실행, 그리고 차별화된 경험으로
-당신의 브랜드가 빛나는 현장을 함께 완성하겠습니다.`,
-    mo: `노바피프티는 사람과 브랜드를 직접 연결하는 순간을
-만듭니다. 새로운 아이디어, 감각적인 실행, 그리고
-차별화된 경험으로 당신의 브랜드가 빛나는 현장을 함께
-완성하겠습니다.`,
-  },
-  follow: {
-    pc: `프로젝트 문의나 협업 제안은 언제든 아래 연락처로 남겨주세요.
-검토 후, 회신 드리겠습니다.`,
-    mo: `프로젝트 문의나 협업 제안은 언제든 아래 연락처로
-남겨주세요. 검토 후, 회신 드리겠습니다.`,
-  },
-}
-
-const LOCATION_ADDRESSES = {
-  ko: '서울 강서구 마곡중앙로 165, 805호 (프라이빗타워1차)',
-  en: '805, 165 Magokjungang-ro, Gangseo-gu, Seoul, Republic of Korea',
-}
-
-export const defaultContactContent = {
-  copy: contactCopy,
-  address: LOCATION_ADDRESSES,
-  phone: '(+82) 2-6949-0550',
-  email: 'hello@nova-50.com',
-}
+export const defaultContactContent = createEmptyContactContent()
 
 function mergeDeviceText(defaults = {}, remote = {}) {
   return { ...defaults, ...remote }

@@ -2,15 +2,8 @@
 import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import welfare01 from '../assets/career/welfare_01.png'
-import welfare02 from '../assets/career/welfare_02.png'
-import welfare03 from '../assets/career/welfare_03.png'
-import welfare04 from '../assets/career/welfare_04.png'
-import welfare05 from '../assets/career/welfare_05.png'
-import welfare06 from '../assets/career/welfare_06.png'
-import welfare07 from '../assets/career/welfare_07.png'
-import welfare08 from '../assets/career/welfare_08.png'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { createEmptyCareerContent } from '../data/pageContentDefaults'
 import { getPageContent } from '../services/mainPageService'
 import { revealDelay } from '../utils/reveal'
 import './CareerPage.css'
@@ -26,162 +19,6 @@ const renderPointText = (text) =>
     return <span key={`${part}-${index}`}>{part}</span>
   })
 
-export const careerText = {
-  hero: {
-    eyebrow: 'Who We Look for',
-    title: `people
-who make
-NOVA50`,
-    copy: `NOVA50는 사람으로 완성됩니다.
-스스로 시작하고, 끝까지 결과를 만들어내며,
-전체를 움직이는 사람들이 우리의 기준입니다`,
-  },
-  work: [
-    {
-      id: 'set-the-stage-themselves',
-      title: {
-        pc: `set
-the stage
-themselves`,
-        mo: `set the stage
-themselves`,
-      },
-      tags: ['주도성', '빠른 실행', '아이디어 실행력'],
-      copy: `스스로
-      판을 만드는 사람`,
-    },
-    {
-      id: 'find-a-way-to-make-it-happen',
-      title: {
-        pc: `find a way
-to make it
-happen`,
-        mo: `find a way to
-make it happen`,
-      },
-      copy: `어떻게든
-결과를 만들어내는 사람`,
-      tags: ['책임감', '완성도 집착', '마감 준수'],
-    },
-    {
-      id: 'design-the-whole-picture',
-      title: {
-        pc: `design
-the whole
-picture`,
-        mo: `design the
-whole picture`,
-      },
-      copy: `전체 흐름과 결과를
-설계하는 사람`,
-      tags: ['기획력', '구조 설계', '문제 정의'],
-    },
-    {
-      id: 'lift-our-team-forward',
-      title: {
-        pc: `lift
-our team
-forward`,
-        mo: `lift our team
-forward`,
-      },
-      copy: `팀의 속도를
-끌어올리는 사람`,
-      tags: ['커뮤니케이션', '협업 능력', '조율 능력'],
-    },
-    {
-      id: 'disruption-into-direction',
-      title: {
-        pc: `disruption
-into
-direction`,
-        mo: `disruption
-into direction`,
-      },
-      copy: `변수를
-기회로 바꾸는 사람`,
-      tags: ['유연성', '문제 해결력', '빠른 판단력', '적응력'],
-    },
-  ],
-  welfare: [
-    {
-      icon: welfare01,
-      title: 'enablement',
-      copy: `모니터암, T50AIR 의자,
-최신형 노트북 제공`,
-    },
-    {
-      icon: welfare02,
-      title: 'Lunch',
-      copy: `매일 색다른,
-또는 건강한 중식 지원`,
-    },
-    {
-      icon: welfare03,
-      title: 'Incentive',
-      copy: `성과는 모두 함께,
-연간 성과급 지급`,
-    },
-    {
-      icon: welfare04,
-      title: 'loyalty',
-      copy: `3, 5, 10, 30년
-함께 한 만큼 포상`,
-    },
-    {
-      icon: welfare05,
-      title: 'support',
-      copy: `기쁜 일, 슬픈 일은 함께,
-경조금 지원`,
-    },
-    {
-      icon: welfare06,
-      title: 'gift',
-      copy: '설/추석 명절 선물은 필수',
-    },
-    {
-      icon: welfare07,
-      title: 'recharge',
-      copy: `연차 휴가, 반차 휴가
-효율적 사용 가능`,
-    },
-    {
-      icon: welfare08,
-      title: 'cafe',
-      copy: '풍성한 음료 및 간식 제공',
-    },
-  ],
-  cta: {
-    title: {
-      pc: 'add your 50',
-      mo: `add
-your 50`,
-    },
-    copy: {
-      pc: `우리는 완벽한 사람을 찾지 않습니다.
-하지만, 자신만의 방식으로 50을 더할 수 있는 사람을 찾습니다.
-*NOVA50에서 당신의 50을 보여주세요.*`,
-      mo: `우리는 완벽한 사람을 찾지 않습니다.
-하지만, 자신만의 방식으로
-50을 더할 수 있는 사람을 찾습니다.
-*NOVA50에서 당신의 50을 보여주세요.*`,
-    },
-    notes: `지원서 양식을 다운로드 후, 작성하여 hello@nova-50.com으로 접수합니다.
-플래너(경력) 및 디자이너(신입/경력) 지원 시 경력 기술서 또는 포트폴리오(자유양식)을 첨부해야 합니다.`,
-    openings: [
-      {
-        id: 'opening-experience-planner',
-        team: 'Experience Design Group',
-        role: 'Experience Planner',
-      },
-      {
-        id: 'opening-graphic-designer',
-        team: 'Creative Design Lab',
-        role: 'Graphic Designer',
-      },
-    ],
-  },
-}
 
 export function normalizeCareerOpening(opening) {
   if (Array.isArray(opening)) {
@@ -313,8 +150,31 @@ export function getCareerCtaDisplayRows(cta = {}) {
   }))
 }
 
+export function mergeCareerPageContent(remote) {
+  const defaults = createEmptyCareerContent()
+
+  if (!remote) {
+    return defaults
+  }
+
+  return {
+    ...defaults,
+    ...remote,
+    hero: {
+      ...defaults.hero,
+      ...remote.hero,
+    },
+    work: Array.isArray(remote.work) ? remote.work : defaults.work,
+    welfare: Array.isArray(remote.welfare) ? remote.welfare : defaults.welfare,
+    cta: normalizeCareerCta({
+      ...defaults.cta,
+      ...remote.cta,
+    }),
+  }
+}
+
 function CareerPage() {
-  const [pageText, setPageText] = useState(careerText)
+  const [pageText, setPageText] = useState(createEmptyCareerContent)
   const [isPageContentReady, setIsPageContentReady] = useState(false)
   const [activeWorkIndex, setActiveWorkIndex] = useState(null)
   const [useWorkClickInteraction, setUseWorkClickInteraction] = useState(false)
@@ -351,14 +211,7 @@ function CareerPage() {
         const data = await getPageContent('career')
 
         if (isMounted && data?.content) {
-          setPageText({
-            ...careerText,
-            ...data.content,
-            cta: normalizeCareerCta({
-              ...careerText.cta,
-              ...data.content.cta,
-            }),
-          })
+          setPageText(mergeCareerPageContent(data.content))
         }
       } catch (error) {
         console.warn('Career 데이터 로딩 실패:', error)

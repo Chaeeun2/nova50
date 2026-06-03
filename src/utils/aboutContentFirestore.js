@@ -52,7 +52,7 @@ function mergeServicesList(defaultServices, remoteServices) {
     Array.isArray(remoteServices) && remoteServices.length > 0 ? remoteServices : defaultServices
 
   const merged = list.map((service, index) => {
-    const fallback = defaultServices[index] || defaultServices[0] || {}
+    const fallback = defaultServices[index] || {}
 
     return {
       ...fallback,
@@ -104,7 +104,7 @@ export function mergeAboutPageContent(defaults, remote) {
           return {
             ...fallback,
             ...item,
-            hoverImage: item.hoverImage || item.image || fallback.hoverImage || fallback.image,
+            hoverImage: item.hoverImage || item.image || fallback.hoverImage || fallback.image || '',
           }
         })
       : defaults.coreValues,

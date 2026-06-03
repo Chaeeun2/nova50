@@ -19,7 +19,6 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   normalizeWorksFilterTags,
   sortWorksTagsAlphabetically,
-  WORKS_FILTER_TAG_OPTIONS,
 } from '../../src/data/worksFilterTags'
 import AdminEditModal from '../components/AdminEditModal'
 import AdminLayout from '../components/AdminLayout'
@@ -67,13 +66,13 @@ function normalizeEnglishTitle(value) {
   return ''
 }
 
-function normalizeWork(work = {}, tagOptions = WORKS_FILTER_TAG_OPTIONS) {
+function normalizeWork(work = {}) {
   return {
     ...emptyWork,
     ...work,
     englishTitle: normalizeEnglishTitle(work.englishTitle),
-    tags: orderWorkTags(work.tags, tagOptions),
-    cardTags: normalizeCardTags(work, tagOptions),
+    tags: orderWorkTags(work.tags),
+    cardTags: normalizeCardTags(work),
     detailImages: Array.isArray(work.detailImages) ? work.detailImages : [],
   }
 }
@@ -84,42 +83,42 @@ function orderWorkTags(tags = []) {
   return sortWorksTagsAlphabetically(selected)
 }
 
-function normalizeCardTags(work = {}, tagOptions = WORKS_FILTER_TAG_OPTIONS) {
-  const fullTags = orderWorkTags(work.tags, tagOptions)
+function normalizeCardTags(work = {}) {
+  const fullTags = orderWorkTags(work.tags)
 
   if (Array.isArray(work.cardTags) && work.cardTags.length > 0) {
-    return orderWorkTags(work.cardTags, tagOptions).filter((tag) => fullTags.includes(tag))
+    return orderWorkTags(work.cardTags).filter((tag) => fullTags.includes(tag))
   }
 
   return fullTags
 }
 
-function syncCardTagsWithFullTags(cardTags, fullTags, tagOptions = WORKS_FILTER_TAG_OPTIONS) {
-  return orderWorkTags(cardTags, tagOptions).filter((tag) => fullTags.includes(tag))
+function syncCardTagsWithFullTags(cardTags, fullTags) {
+  return orderWorkTags(cardTags).filter((tag) => fullTags.includes(tag))
 }
 
-function stripRemovedTagsFromWork(work, removedTags, tagOptions) {
+function stripRemovedTagsFromWork(work, removedTags) {
   if (!removedTags.length) {
     return work
   }
 
   return {
     ...work,
-    tags: orderWorkTags(work.tags, tagOptions).filter((tag) => !removedTags.includes(tag)),
-    cardTags: orderWorkTags(work.cardTags, tagOptions).filter((tag) => !removedTags.includes(tag)),
+    tags: orderWorkTags(work.tags).filter((tag) => !removedTags.includes(tag)),
+    cardTags: orderWorkTags(work.cardTags).filter((tag) => !removedTags.includes(tag)),
   }
 }
 
-function toggleWorkTag(tags, tag, tagOptions = WORKS_FILTER_TAG_OPTIONS) {
+function toggleWorkTag(tags, tag) {
   if (tags.includes(tag)) {
     return tags.filter((item) => item !== tag)
   }
 
-  return orderWorkTags([...tags, tag], tagOptions)
+  return orderWorkTags([...tags, tag])
 }
 
-function workToDraft(work = {}, tagOptions = WORKS_FILTER_TAG_OPTIONS) {
-  const normalized = normalizeWork(work, tagOptions)
+function workToDraft(work = {}) {
+  const normalized = normalizeWork(work)
 
   return {
     ...normalized,
@@ -278,7 +277,7 @@ export default function WorksManager() {
   const [saving, setSaving] = useState(false)
   const [reordering, setReordering] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterTagOptions, setFilterTagOptions] = useState(WORKS_FILTER_TAG_OPTIONS)
+  const [filterTagOptions, setFilterTagOptions] = useState([])
   const [isTagManageOpen, setIsTagManageOpen] = useState(false)
   const [savedWorkMedia, setSavedWorkMedia] = useState(null)
 
@@ -306,7 +305,7 @@ export default function WorksManager() {
       setFilterTagOptions(normalizeWorksFilterTags(data?.filterTags))
     } catch (error) {
       console.warn('Works 필터 태그 로딩 실패:', error)
-      setFilterTagOptions(WORKS_FILTER_TAG_OPTIONS)
+      setFilterTagOptions([])
     }
   }
 
@@ -334,7 +333,7 @@ export default function WorksManager() {
     setIsCreatingWork(true)
     setEditingWorkId(null)
     setSavedWorkMedia(null)
-    setWorkDraft(workToDraft(emptyWork, filterTagOptions))
+    setWorkDraft(workToDraft(emptyWork))
   }
 
   const openEditWorkModal = (work) => {
@@ -344,7 +343,7 @@ export default function WorksManager() {
       thumbnail: work.thumbnail || '',
       detailImages: [...(work.detailImages || [])],
     })
-    setWorkDraft(workToDraft(work, filterTagOptions))
+    setWorkDraft(workToDraft(work))
   }
 
   const handleApplyFilterTags = async (nextTagOptions) => {
@@ -357,7 +356,7 @@ export default function WorksManager() {
 
       if (removedTags.length > 0) {
         const updates = works.map((work) => {
-          const updated = stripRemovedTagsFromWork(work, removedTags, sortedTagOptions)
+          const updated = stripRemovedTagsFromWork(work, removedTags)
           const changed =
             JSON.stringify(work.tags) !== JSON.stringify(updated.tags) ||
             JSON.stringify(work.cardTags) !== JSON.stringify(updated.cardTags)
@@ -380,7 +379,7 @@ export default function WorksManager() {
 
         if (workDraft) {
           setWorkDraft((currentDraft) =>
-            stripRemovedTagsFromWork(currentDraft, removedTags, sortedTagOptions),
+            stripRemovedTagsFromWork(currentDraft, removedTags),
           )
         }
       }
@@ -778,16 +777,12 @@ export default function WorksManager() {
                   tags={workDraft.tags}
                   onChange={(tag) =>
                     updateWorkDraft((currentDraft) => {
-                      const tags = toggleWorkTag(currentDraft.tags, tag, filterTagOptions)
+                      const tags = toggleWorkTag(currentDraft.tags, tag)
 
                       return {
                         ...currentDraft,
                         tags,
-                        cardTags: syncCardTagsWithFullTags(
-                          currentDraft.cardTags,
-                          tags,
-                          filterTagOptions,
-                        ),
+                        cardTags: syncCardTagsWithFullTags(currentDraft.cardTags, tags),
                       }
                     })
                   }
@@ -804,7 +799,7 @@ export default function WorksManager() {
                   onChange={(tag) =>
                     updateWorkDraft((currentDraft) => ({
                       ...currentDraft,
-                      cardTags: toggleWorkTag(currentDraft.cardTags, tag, filterTagOptions),
+                      cardTags: toggleWorkTag(currentDraft.cardTags, tag),
                     }))
                   }
                 />
