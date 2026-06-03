@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -10,6 +11,7 @@ import welfare06 from '../assets/career/welfare_06.png'
 import welfare07 from '../assets/career/welfare_07.png'
 import welfare08 from '../assets/career/welfare_08.png'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { getPageContent } from '../services/mainPageService'
 import { revealDelay } from '../utils/reveal'
 import './CareerPage.css'
 
@@ -24,7 +26,7 @@ const renderPointText = (text) =>
     return <span key={`${part}-${index}`}>{part}</span>
   })
 
-const careerText = {
+export const careerText = {
   hero: {
     eyebrow: 'Who We Look for',
     title: `people
@@ -164,31 +166,233 @@ your 50`,
 50을 더할 수 있는 사람을 찾습니다.
 *NOVA50에서 당신의 50을 보여주세요.*`,
     },
-    notes: [
-      {
-        pc: '지원서 양식을 다운로드 후, 작성하여 hello@nova-50.com으로 접수합니다.',
-        mo: `지원서 양식을 다운로드 후, 작성하여
-hello@nova-50.com으로 접수합니다.`,
-      },
-      {
-        pc: '플래너(경력) 및 디자이너(신입/경력) 지원 시 경력 기술서 또는 포트폴리오(자유양식)을 첨부해야 합니다.',
-        mo: `플래너(경력) 및 디자이너(신입/경력) 지원 시 경력 기술서
-또는 포트폴리오(자유양식)을 첨부해야 합니다.`,
-      },
-    ],
+    notes: `지원서 양식을 다운로드 후, 작성하여 hello@nova-50.com으로 접수합니다.
+플래너(경력) 및 디자이너(신입/경력) 지원 시 경력 기술서 또는 포트폴리오(자유양식)을 첨부해야 합니다.`,
     openings: [
-      ['Experience Design Group', 'Experience Planner'],
-      ['Creative Design Lab', 'Graphic Designer'],
+      {
+        id: 'opening-experience-planner',
+        team: 'Experience Design Group',
+        role: 'Experience Planner',
+      },
+      {
+        id: 'opening-graphic-designer',
+        team: 'Creative Design Lab',
+        role: 'Graphic Designer',
+      },
     ],
   },
 }
 
-function CareerPage() {
-  const [activeWorkIndex, setActiveWorkIndex] = useState(null)
-  const [isCareerDarkActive, setIsCareerDarkActive] = useState(false)
-  const heroTitleLines = splitLines(careerText.hero.title)
+export function normalizeCareerOpening(opening) {
+  if (Array.isArray(opening)) {
+    return { team: opening[0] || '', role: opening[1] || '' }
+  }
 
-  useRevealAnimations()
+  return {
+    team: opening?.team || '',
+    role: opening?.role || '',
+  }
+}
+
+export function normalizeCareerOpenings(openings = []) {
+  return openings.map(normalizeCareerOpening)
+}
+
+export function normalizeCareerTeams(teams = []) {
+  if (!Array.isArray(teams)) {
+    return []
+  }
+
+  return teams.map((item, index) => {
+    if (typeof item === 'string') {
+      return { id: `team-${index}`, name: item }
+    }
+
+    return {
+      id: item.id || `team-${index}`,
+      name: item.name || item.team || '',
+    }
+  })
+}
+
+export function normalizeCareerOpeningRoles(openings = []) {
+  if (!Array.isArray(openings)) {
+    return []
+  }
+
+  return openings.map((item, index) => {
+    if (item?.role !== undefined && item?.team === undefined && !Array.isArray(item)) {
+      return {
+        id: item.id || `opening-${index}`,
+        role: item.role || '',
+      }
+    }
+
+    const legacy = normalizeCareerOpening(item)
+
+    return {
+      id: item?.id || `opening-${index}`,
+      role: legacy.role,
+    }
+  })
+}
+
+export function formatCareerNotesForEditor(notes) {
+  if (typeof notes === 'string') {
+    return notes
+  }
+
+  if (!Array.isArray(notes)) {
+    return ''
+  }
+
+  if (!notes.length) {
+    return ''
+  }
+
+  if (typeof notes[0] === 'string') {
+    return notes.join('\n')
+  }
+
+  return notes
+    .map((note) => note?.pc || note?.mo || '')
+    .filter(Boolean)
+    .join('\n')
+}
+
+export function normalizeCareerNotesForDisplay(notes) {
+  return formatCareerNotesForEditor(notes)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+export function normalizeCareerCtaOpenings(openings = [], teams = []) {
+  if (Array.isArray(teams) && teams.length > 0) {
+    const teamList = normalizeCareerTeams(teams)
+    const roleList = normalizeCareerOpeningRoles(openings)
+    const rowCount = Math.max(teamList.length, roleList.length)
+
+    return Array.from({ length: rowCount }, (_, index) => ({
+      id: teamList[index]?.id || roleList[index]?.id || `opening-${index}`,
+      team: teamList[index]?.name || '',
+      role: roleList[index]?.role || '',
+    }))
+  }
+
+  if (!Array.isArray(openings)) {
+    return []
+  }
+
+  return openings.map((item, index) => {
+    const row = normalizeCareerOpening(item)
+
+    return {
+      id: item?.id || `opening-${index}`,
+      team: row.team,
+      role: row.role,
+    }
+  })
+}
+
+export function normalizeCareerCta(cta = {}) {
+  const { teams, ...ctaWithoutTeams } = cta
+
+  return {
+    ...ctaWithoutTeams,
+    openings: normalizeCareerCtaOpenings(cta.openings, teams),
+    notes: formatCareerNotesForEditor(cta.notes),
+  }
+}
+
+export function getCareerCtaDisplayRows(cta = {}) {
+  return normalizeCareerCta(cta).openings.map((row) => ({
+    team: row.team,
+    role: row.role,
+    key: row.id,
+  }))
+}
+
+function CareerPage() {
+  const [pageText, setPageText] = useState(careerText)
+  const [isPageContentReady, setIsPageContentReady] = useState(false)
+  const [activeWorkIndex, setActiveWorkIndex] = useState(null)
+  const [useWorkClickInteraction, setUseWorkClickInteraction] = useState(false)
+  const [isCareerDarkActive, setIsCareerDarkActive] = useState(false)
+  const heroTitleLines = splitLines(pageText.hero.title)
+  const workRevealKey = pageText.work
+    .map((item, index) => `${index}:${item.id || item.title?.pc || ''}`)
+    .join('|')
+  const welfareRevealKey = pageText.welfare
+    .map((item, index) => `${index}:${item.id || item.title || ''}`)
+    .join('|')
+  const ctaDisplayRows = getCareerCtaDisplayRows(pageText.cta)
+  const ctaNoteLines = normalizeCareerNotesForDisplay(pageText.cta.notes)
+  const ctaOpeningsRevealKey = ctaDisplayRows
+    .map((row, index) => `${index}:${row.team}:${row.role}`)
+    .join('|')
+  const ctaNotesRevealKey = ctaNoteLines.join('|')
+
+  useRevealAnimations({
+    refreshDeps: [
+      isPageContentReady,
+      workRevealKey,
+      welfareRevealKey,
+      ctaOpeningsRevealKey,
+      ctaNotesRevealKey,
+    ],
+  })
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadCareerContent() {
+      try {
+        const data = await getPageContent('career')
+
+        if (isMounted && data?.content) {
+          setPageText({
+            ...careerText,
+            ...data.content,
+            cta: normalizeCareerCta({
+              ...careerText.cta,
+              ...data.content.cta,
+            }),
+          })
+        }
+      } catch (error) {
+        console.warn('Career 데이터 로딩 실패:', error)
+      } finally {
+        if (isMounted) {
+          setIsPageContentReady(true)
+        }
+      }
+    }
+
+    loadCareerContent()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(hover: none)')
+    const updateWorkInteraction = () => {
+      setUseWorkClickInteraction(mediaQuery.matches)
+
+      if (!mediaQuery.matches) {
+        setActiveWorkIndex(null)
+      }
+    }
+
+    updateWorkInteraction()
+    mediaQuery.addEventListener('change', updateWorkInteraction)
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateWorkInteraction)
+    }
+  }, [])
 
   useEffect(() => {
     const updateCareerDarkState = () => {
@@ -237,7 +441,7 @@ function CareerPage() {
 
       <section className="career-hero" data-reveal-section data-reveal-section-immediate>
         <p className="career-eyebrow" data-reveal-item style={revealDelay(0)}>
-          {careerText.hero.eyebrow}
+          {pageText.hero.eyebrow}
         </p>
         <h1>
           {heroTitleLines.map((line, index) => (
@@ -253,7 +457,7 @@ function CareerPage() {
           style={revealDelay(heroTitleLines.length + 1)}
         />
         <p className="career-hero-copy" data-reveal-item style={revealDelay(heroTitleLines.length + 2)}>
-          {careerText.hero.copy}
+          {pageText.hero.copy}
         </p>
       </section>
 
@@ -262,35 +466,51 @@ function CareerPage() {
           How We Work
         </p>
         <div className="career-work-grid">
-          {careerText.work.map((item, index) => (
-            <div
-              className="career-work-reveal"
-              data-reveal-item
-              key={item.id}
-              style={revealDelay(index + 1)}
-            >
-              <button
-                className={`career-work-card ${activeWorkIndex === index ? 'is-active' : ''}`}
-                type="button"
-                onClick={() =>
-                  setActiveWorkIndex((currentIndex) => (currentIndex === index ? null : index))
-                }
+          {isPageContentReady &&
+            pageText.work.map((item, index) => (
+              <div
+                className="career-work-reveal"
+                data-reveal-item
+                key={`work-${index}-${item.id}`}
+                style={revealDelay(index + 1)}
               >
-                <h2>
-                  <span className="career-work-title-pc">{item.title.pc}</span>
-                  <span className="career-work-title-mo">{item.title.mo}</span>
-                </h2>
-                <p className="career-work-copy">{item.copy}</p>
-                {activeWorkIndex === index && (
+                <article
+                  className={`career-work-card ${
+                    useWorkClickInteraction && activeWorkIndex === index ? 'is-active' : ''
+                  }`}
+                  {...(useWorkClickInteraction
+                    ? {
+                        role: 'button',
+                        tabIndex: 0,
+                        'aria-expanded': activeWorkIndex === index,
+                        onClick: () =>
+                          setActiveWorkIndex((currentIndex) =>
+                            currentIndex === index ? null : index,
+                          ),
+                        onKeyDown: (event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            setActiveWorkIndex((currentIndex) =>
+                              currentIndex === index ? null : index,
+                            )
+                          }
+                        },
+                      }
+                    : {})}
+                >
+                  <h2>
+                    <span className="career-work-title-pc">{item.title.pc}</span>
+                    <span className="career-work-title-mo">{item.title.mo}</span>
+                  </h2>
+                  <p className="career-work-copy">{item.copy}</p>
                   <div className="career-work-tags">
                     {item.tags.map((tag) => (
                       <span key={tag}>{tag}</span>
                     ))}
                   </div>
-                )}
-              </button>
-            </div>
-          ))}
+                </article>
+              </div>
+            ))}
         </div>
       </section>
 
@@ -307,43 +527,49 @@ function CareerPage() {
           </span>
         </h2>
         <div className="career-welfare-grid">
-          {careerText.welfare.map((item, index) => (
-            <article
-              className="career-welfare-card"
-              data-reveal-item
-              key={item.title}
-              style={revealDelay(index + 2)}
-            >
-              <img src={item.icon} alt="" aria-hidden="true" />
-              <div>
-                <h3>{item.title}</h3>
-                <p>{item.copy}</p>
-              </div>
-            </article>
-          ))}
+          {isPageContentReady &&
+            pageText.welfare.map((item, index) => (
+              <article
+                className="career-welfare-card"
+                data-reveal-item
+                key={`welfare-${index}-${item.id || item.title}`}
+                style={revealDelay(index + 2)}
+              >
+                <img src={item.icon} alt="" aria-hidden="true" />
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.copy}</p>
+                </div>
+              </article>
+            ))}
         </div>
       </section>
 
       <section className="career-cta-section" data-reveal-section>
         <h2 data-reveal-item style={revealDelay(0)}>
-          <span className="career-cta-title-pc">{careerText.cta.title.pc}</span>
-          <span className="career-cta-title-mo">{careerText.cta.title.mo}</span>
+          <span className="career-cta-title-pc">{pageText.cta.title.pc}</span>
+          <span className="career-cta-title-mo">{pageText.cta.title.mo}</span>
         </h2>
         <p className="career-cta-copy career-cta-copy-pc" data-reveal-item style={revealDelay(1)}>
-          {renderPointText(careerText.cta.copy.pc)}
+          {renderPointText(pageText.cta.copy.pc)}
         </p>
         <p className="career-cta-copy career-cta-copy-mo" data-reveal-item style={revealDelay(1)}>
-          {renderPointText(careerText.cta.copy.mo)}
+          {renderPointText(pageText.cta.copy.mo)}
         </p>
-        <div className="career-openings" data-reveal-item style={revealDelay(2)}>
-          {careerText.cta.openings.map(([team, role]) => (
-            <div key={team}>
-              <strong>{team}</strong>
-              <span>{role}</span>
-            </div>
-          ))}
+        <div className="career-openings">
+          {isPageContentReady &&
+            ctaDisplayRows.map((row, index) => (
+              <div data-reveal-item key={row.key} style={revealDelay(2 + index)}>
+                <strong>{row.team}</strong>
+                <span>{row.role}</span>
+              </div>
+            ))}
         </div>
-        <div className="career-cta-actions" data-reveal-item style={revealDelay(3)}>
+        <div
+          className="career-cta-actions"
+          data-reveal-item
+          style={revealDelay(2 + ctaDisplayRows.length)}
+        >
           <a href="../assets/career/NOVA50_지원서.docx" download>
             지원양식 다운로드
           </a>
@@ -352,12 +578,15 @@ function CareerPage() {
             <span>hello@nova-50.com</span>
           </button>
         </div>
-        <ul className="career-cta-notes" data-reveal-item style={revealDelay(4)}>
-          {careerText.cta.notes.map((note) => (
-            <li key={note.pc}>
+        <ul className="career-cta-notes">
+          {ctaNoteLines.map((note, index) => (
+            <li
+              data-reveal-item
+              key={`${note}-${index}`}
+              style={revealDelay(3 + ctaDisplayRows.length + index)}
+            >
               <span className="member-project-dot" aria-hidden="true" />
-              <span className="career-cta-note-pc">{note.pc}</span>
-              <span className="career-cta-note-mo">{note.mo}</span>
+              <span className="career-cta-note-text">{note}</span>
             </li>
           ))}
         </ul>

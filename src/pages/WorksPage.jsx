@@ -2,8 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import projectData from '../data/ProjectData'
+import {
+  buildWorksFilterTagsForUi,
+  normalizeWorksFilterTags,
+  worksFilterTags as defaultWorksFilterTags,
+} from '../data/worksFilterTags'
 import '../styles/ProjectModal.css'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { getWorks, getWorksFilterTags } from '../services/mainPageService'
 import { revealDelay } from '../utils/reveal'
 import './WorksPage.css'
 
@@ -12,31 +18,21 @@ const worksHeroTitle = {
   mo: 'WHAT\nWE DID',
 }
 
-const getEnglishTitle = (title) => (typeof title === 'string' ? title : title.pc)
+const getEnglishTitle = (title) => {
+  if (typeof title === 'string') {
+    return title
+  }
 
-const getEnglishTitleMo = (title) =>
-  typeof title === 'string' ? title : title.mo
+  if (title && typeof title === 'object') {
+    return title.pc || title.mo || ''
+  }
 
-const filterTags = [
-  { label: 'ALL', tone: 'white' },
-  { label: 'Game Event' },
-  { label: 'Showcase' },
-  { label: 'Pre-launch' },
-  { label: 'Offline' },
-  { label: 'Immersive' },
-  { label: 'Interactive' },
-  { label: 'Media' },
-  { label: 'Influencer' },
-  { label: 'Corporate Event' },
-  { label: 'Ceremony' },
-  { label: 'Recognition' },
-  { label: 'VIP' },
-  { label: 'Networking' },
-  { label: 'Presentation' },
-  { label: 'Internal Engagement' },
-]
+  return ''
+}
 
 function WorksPage() {
+  const [projects, setProjects] = useState(projectData)
+  const [filterTags, setFilterTags] = useState(defaultWorksFilterTags)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [activeFilters, setActiveFilters] = useState([])
   const [selectedProject, setSelectedProject] = useState(null)
@@ -46,10 +42,40 @@ function WorksPage() {
   const isDetailDragging = useRef(false)
   const filteredProjects =
     activeFilters.length === 0
-      ? projectData
-      : projectData.filter((project) => project.tags.some((tag) => activeFilters.includes(tag)))
+      ? projects
+      : projects.filter((project) => project.tags.some((tag) => activeFilters.includes(tag)))
 
   useRevealAnimations()
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadWorks() {
+      try {
+        const [works, remoteFilterTags] = await Promise.all([getWorks(), getWorksFilterTags()])
+
+        if (!isMounted) {
+          return
+        }
+
+        if (remoteFilterTags) {
+          setFilterTags(buildWorksFilterTagsForUi(normalizeWorksFilterTags(remoteFilterTags)))
+        }
+
+        if (works.length > 0) {
+          setProjects(works)
+        }
+      } catch (error) {
+        console.warn('Works 데이터 로딩 실패:', error)
+      }
+    }
+
+    loadWorks()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!selectedProject) {
@@ -236,12 +262,9 @@ function WorksPage() {
               <img src={project.thumbnail} alt={getEnglishTitle(project.englishTitle)} />
             </button>
             <p>{project.koreanTitle}</p>
-            <h2 className="work-card-title">
-              <span className="work-card-title-pc">{getEnglishTitle(project.englishTitle)}</span>
-              <span className="work-card-title-mo">{getEnglishTitleMo(project.englishTitle)}</span>
-            </h2>
+            <h2 className="work-card-title">{getEnglishTitle(project.englishTitle)}</h2>
             <div className="work-card-tags">
-              {project.tags.slice(0, 3).map((tag) => (
+              {(project.cardTags?.length ? project.cardTags : project.tags || []).map((tag) => (
                 <span key={tag}>{tag}</span>
               ))}
             </div>
@@ -311,14 +334,7 @@ function WorksPage() {
             <div className="project-modal-content">
               <div className="project-modal-title">
                 <p>{selectedProject.modalKoreanTitle ?? selectedProject.koreanTitle}</p>
-                <h2 id="project-modal-title">
-                  <span className="project-modal-title-pc">
-                    {getEnglishTitle(selectedProject.englishTitle)}
-                  </span>
-                  <span className="project-modal-title-mo">
-                    {getEnglishTitleMo(selectedProject.englishTitle)}
-                  </span>
-                </h2>
+                <h2 id="project-modal-title">{getEnglishTitle(selectedProject.englishTitle)}</h2>
               </div>
               <dl className="project-modal-info">
                 <div>

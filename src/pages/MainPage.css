@@ -86,6 +86,7 @@
   width: 150px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.35);
+  margin-left: 10px;
 }
 
 .progress-bar::after {
@@ -228,6 +229,7 @@
 .feature-card picture,
 .feature-card img {
   position: absolute;
+  z-index: 0;
   inset: 0;
   display: block;
   width: 100%;
@@ -239,13 +241,26 @@
     transform 0.3s ease;
 }
 
+.feature-card::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  content: "";
+  background: rgba(0, 0, 0, 0.03);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
 .feature-card::after {
   position: absolute;
+  z-index: 2;
   inset: 0;
   content: "";
   background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(6px);
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
@@ -259,13 +274,14 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
+.feature-card:is(:hover, :active, :focus-visible)::before,
 .feature-card:is(:hover, :active, :focus-visible)::after {
   opacity: 1;
 }
 
 .card-content {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: flex;
   width: 100%;
   flex-direction: column;
@@ -293,7 +309,7 @@
   position: absolute;
   right: 40px;
   bottom: 40px;
-  z-index: 1;
+  z-index: 4;
   display: grid;
   width: 70px;
   height: 70px;
@@ -342,8 +358,26 @@
   white-space: pre-line;
 }
 
-.partners-title span {
+.partners-title span,
+.partners-title strong {
   color: var(--color-point);
+}
+
+.title-line strong,
+.card-content strong strong,
+.card-content span strong {
+  color: var(--color-point);
+  font-weight: inherit;
+}
+
+.about-copy strong {
+  color: inherit;
+  font-weight: 700;
+}
+
+.about-body h3 strong {
+  color: inherit;
+  font-weight: 900;
 }
 
 .partner-carousel-wrap {
@@ -363,12 +397,13 @@
 .partner-track {
   --partner-gap: 80px;
   --partner-loop-offset: 20px;
+  --partner-carousel-duration: 60s;
 
   display: flex;
   align-items: center;
   gap: var(--partner-gap);
   width: max-content;
-  animation: partnerCarousel 40s linear infinite;
+  animation: partnerCarousel var(--partner-carousel-duration) linear infinite;
   will-change: transform;
 }
 
@@ -398,10 +433,6 @@
 
   .card-section {
     grid-template-columns: 1fr;
-  }
-
-  .partner-track {
-    animation-duration: 33.6s;
   }
 
   .partner-carousel-wrap {
@@ -488,6 +519,7 @@
 
   .progress-bar {
     width: 100px;
+    margin-left: 3.5px;
   }
 
   .hero-title-pc {
@@ -631,8 +663,6 @@
   .partner-carousel--dual .partner-track {
     --partner-gap: 40px;
     --partner-loop-offset: 10px;
-
-    animation-duration: 28s;
   }
 
   .partner-carousel--dual .partner-logo {

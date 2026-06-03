@@ -1,12 +1,18 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect, useRef, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import coreValue01 from '../assets/core_value_01.png'
 import coreValue02 from '../assets/core_value_02.png'
 import coreValue03 from '../assets/core_value_03.png'
-import serviceVideo from '../assets/about/services_sample.mp4'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { getPageContent } from '../services/mainPageService'
+import { ABOUT_SECTION_EYEBROWS } from '../data/aboutSectionEyebrows'
+import {
+  getServiceDisplayNumber,
+  mergeAboutPageContent,
+} from '../utils/aboutContentFirestore'
 import { revealDelay } from '../utils/reveal'
 import './AboutPage.css'
 
@@ -23,9 +29,19 @@ const memberImages = Object.entries(memberImageModules)
     src,
   }))
 
+function resolveMemberImage(member, index) {
+  if (member?.image) {
+    return member.image
+  }
+
+  return memberImages[index]?.src ?? memberImages[0]?.src ?? ''
+}
+
 const splitLines = (text) => text.split('\n')
 
-const aboutText = {
+const hasServiceVideo = (service) => Boolean(service?.video?.trim())
+
+export const aboutText = {
   identity: {
     eyebrow: 'Brand Identity',
     title: {
@@ -69,6 +85,7 @@ NOVA50는 그 빛으로 사람들이 이전과 이후를
 insight
 begin`,
       image: coreValue01,
+      hoverImage: coreValue01,
       headline: '브랜드의 경험이 시작됩니다.',
       body: `모든 브랜드의 시작은 ‘다르게 보는 순간’에서 탄생합니다. 같은 출발선 위에서도, 우리는 전혀 다른 결과를 만들어냅니다.`,
     },
@@ -77,6 +94,7 @@ begin`,
 we move
 people`,
       image: coreValue02,
+      hoverImage: coreValue02,
       headline: '아이디어로 사람을 움직입니다.',
       body: `우리는 스치는 경험이 아닌, 마음을 흔드는 순간을 만듭니다. 그리고 그 순간은 오래도록 기억됩니다.`,
     },
@@ -85,6 +103,7 @@ people`,
 build
 connection`,
       image: coreValue03,
+      hoverImage: coreValue03,
       headline: '브랜드와 사람을 연결합니다.',
       body: `모든 브랜드의 시작은 ‘다르게 보는 순간’에서 탄생합니다. 같은 출발선 위에서도, 우리는 전혀 다른 결과를 만들어냅니다.`,
     },
@@ -228,11 +247,13 @@ we expand meaningful touchpoints.`,
         id: 'nova-50',
         variant: 'title',
         title: { pc: 'nova 50', mo: 'nova 50' },
+        teams: [],
       },
       {
         id: 'innovation-lab',
         variant: 'title',
         title: { pc: 'innovation lab', mo: 'innovation lab' },
+        teams: [],
       },
       {
         id: 'operation-growth-office',
@@ -249,6 +270,7 @@ NOVA50 Research Institute`,
 Business Support Division
 NOVA50 Research Institute`,
         },
+        teams: [],
       },
       {
         id: 'experience-design-group',
@@ -266,13 +288,7 @@ design group`,
 프로모션부터 소셜마케팅까지
 —  접점 하나하나를 경험으로 설계합니다.`,
         },
-        teams: {
-          pc: ['Team 07', 'Team 24', 'Team 25', 'Team 44', 'Team 49'],
-          mo: [
-            ['Team 07', 'Team 24', 'Team 25'],
-            ['Team 44', 'Team 49'],
-          ],
-        },
+        teams: ['Team 07', 'Team 24', 'Team 25', 'Team 44', 'Team 49'],
       },
       {
         id: 'creative-design-lab',
@@ -290,10 +306,7 @@ design lab`,
 언어로 풀어냅니다. 공간, 그래픽, 콘텐츠 전반에
 걸쳐 일관된 브랜드 경험을 만들어냅니다.`,
         },
-        teams: {
-          pc: ['Creative Directing', 'Visual Design', 'Content Production'],
-          mo: ['Creative Directing', 'Visual Design', 'Content Production'],
-        },
+        teams: ['Creative Directing', 'Visual Design', 'Content Production'],
       },
     ],
   },
@@ -376,29 +389,13 @@ const renderOrganizationTeamsPc = (teams) => (
   </ul>
 )
 
-const renderOrganizationTeamsMo = (teams) => {
-  if (Array.isArray(teams[0])) {
-    return (
-      <div className="organization-teams organization-teams-mo organization-teams-mo-columns">
-        {teams.map((column) => (
-          <ul key={column.join('-')}>
-            {column.map((team) => (
-              <li key={team}>{team}</li>
-            ))}
-          </ul>
-        ))}
-      </div>
-    )
-  }
-
-  return (
-    <ul className="organization-teams organization-teams-mo">
-      {teams.map((team) => (
-        <li key={team}>{team}</li>
-      ))}
-    </ul>
-  )
-}
+const renderOrganizationTeamsMo = (teams) => (
+  <ul className="organization-teams organization-teams-mo">
+    {teams.map((team) => (
+      <li key={team}>{team}</li>
+    ))}
+  </ul>
+)
 
 const renderIdentityCopy = (copy, keyPrefix) =>
   copy.split('\n').map((line, lineIndex) =>
@@ -414,6 +411,8 @@ const renderIdentityCopy = (copy, keyPrefix) =>
   )
 
 function AboutPage() {
+  const [pageText, setPageText] = useState(aboutText)
+  const [isPageContentReady, setIsPageContentReady] = useState(false)
   const [activeServiceIndex, setActiveServiceIndex] = useState(null)
   const [activeMemberIndex, setActiveMemberIndex] = useState(0)
   const [displayedMemberIndex, setDisplayedMemberIndex] = useState(0)
@@ -423,21 +422,28 @@ function AboutPage() {
   const memberDragStartX = useRef(0)
   const memberDragOffsetX = useRef(0)
   const isMemberDragging = useRef(false)
-  const organizationItems = aboutText.organization.items
-  const members = memberImages.map((image, index) => ({
-    ...(aboutText.members[index] ?? aboutText.members[0]),
-    image: image.src,
-    id: image.id,
+  const organizationItems = pageText.organization.items
+  const members = (pageText.members ?? []).map((member, index) => ({
+    ...member,
+    id: member.id || memberImages[index]?.id || `member-${index + 1}`,
+    image: resolveMemberImage(member, index),
   }))
-  const activeMember = members[activeMemberIndex] ?? members[0]
-  const displayedMember = members[displayedMemberIndex] ?? activeMember
+  const currentMemberIndex =
+    members.length === 0 ? 0 : Math.min(activeMemberIndex, members.length - 1)
+  const currentDisplayedMemberIndex =
+    members.length === 0 ? 0 : Math.min(displayedMemberIndex, members.length - 1)
+  const activeMember = members[currentMemberIndex] ?? members[0]
+  const displayedMember = members[currentDisplayedMemberIndex] ?? activeMember
   const isMobileLayout = useMediaQuery('(max-width: 720px)')
-  const identityTitleLinesPc = splitLines(aboutText.identity.title.pc)
-  const identityTitleLinesMo = splitLines(aboutText.identity.title.mo)
+  const identityTitleLinesPc = splitLines(pageText.identity.title.pc)
+  const identityTitleLinesMo = splitLines(pageText.identity.title.mo)
   const identityTitleLineCount = isMobileLayout
     ? identityTitleLinesMo.length
     : identityTitleLinesPc.length
   const identityBodyRevealOffset = 1 + identityTitleLineCount
+  const servicesRevealKey = pageText.services
+    .map((service, index) => `${index}:${getServiceDisplayNumber(service, index)}`)
+    .join('|')
 
   useEffect(() => {
     serviceVideoRefs.current.forEach((video, index) => {
@@ -455,7 +461,36 @@ function AboutPage() {
     })
   }, [activeServiceIndex])
 
-  useRevealAnimations()
+  useRevealAnimations({
+    refreshDeps: [isPageContentReady, servicesRevealKey],
+  })
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadAboutContent() {
+      try {
+        const data = await getPageContent('about')
+
+        if (isMounted && data?.content) {
+          setPageText(mergeAboutPageContent(aboutText, data.content))
+          setActiveServiceIndex(null)
+        }
+      } catch (error) {
+        console.warn('About 데이터 로딩 실패:', error)
+      } finally {
+        if (isMounted) {
+          setIsPageContentReady(true)
+        }
+      }
+    }
+
+    loadAboutContent()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (members.length <= 1) {
@@ -557,7 +592,7 @@ function AboutPage() {
 
       <section className="about-identity-section" data-reveal-section>
         <p className="about-page-eyebrow" data-reveal-item style={revealDelay(0)}>
-          {aboutText.identity.eyebrow}
+          {ABOUT_SECTION_EYEBROWS.identity}
         </p>
         <h1 className="about-identity-title about-identity-title-pc">
           {renderIdentityTitleLines(identityTitleLinesPc, 'title-pc', 1, !isMobileLayout)}
@@ -581,7 +616,7 @@ function AboutPage() {
                 }
               : {})}
           >
-            {aboutText.identity.introTitle.pc}
+            {pageText.identity.introTitle.pc}
           </h2>
           <h2
             className="about-identity-intro about-identity-intro-mo"
@@ -592,7 +627,7 @@ function AboutPage() {
                 }
               : {})}
           >
-            {aboutText.identity.introTitle.mo}
+            {pageText.identity.introTitle.mo}
           </h2>
           <div
             className="identity-copy identity-copy-pc"
@@ -603,7 +638,7 @@ function AboutPage() {
                 }
               : {})}
           >
-            {renderIdentityCopy(aboutText.identity.copy.pc, 'copy-pc')}
+            {renderIdentityCopy(pageText.identity.copy.pc, 'copy-pc')}
           </div>
           <div
             className="identity-copy identity-copy-mo"
@@ -614,7 +649,7 @@ function AboutPage() {
                 }
               : {})}
           >
-            {renderIdentityCopy(aboutText.identity.copy.mo, 'copy-mo')}
+            {renderIdentityCopy(pageText.identity.copy.mo, 'copy-mo')}
           </div>
         </div>
       </section>
@@ -624,7 +659,10 @@ function AboutPage() {
           Core Values
         </p>
         <div className="core-card-grid">
-          {aboutText.coreValues.map((card, index) => (
+          {pageText.coreValues.map((card, index) => {
+            const hoverImage = card.hoverImage || card.image
+
+            return (
             <article
               className="core-card"
               data-reveal-item
@@ -632,11 +670,25 @@ function AboutPage() {
               style={revealDelay(index + 1)}
             >
               <h2>{card.title}</h2>
-              <img src={card.image} alt="" aria-hidden="true" />
+              <div className="core-card__image">
+                <img
+                  className="core-card__image-default"
+                  src={card.image}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <img
+                  className="core-card__image-hover"
+                  src={hoverImage}
+                  alt=""
+                  aria-hidden="true"
+                />
+              </div>
               <h3>{card.headline}</h3>
               <p>{card.body}</p>
             </article>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -645,12 +697,16 @@ function AboutPage() {
           Services
         </p>
         <div className="service-accordion">
-          {aboutText.services.map((service, index) => (
+          {isPageContentReady &&
+            pageText.services.map((service, index) => {
+              const serviceNumber = getServiceDisplayNumber(service, index)
+
+              return (
             <article
               className={`service-accordion-item ${
                 activeServiceIndex === index ? 'is-open' : ''
               }`}
-              key={service.number}
+              key={`service-${index}-${serviceNumber}`}
             >
               <button
                 className="service-trigger"
@@ -664,7 +720,7 @@ function AboutPage() {
                   )
                 }
               >
-                <span>{service.number}</span>
+                <span className="service-number">{serviceNumber}</span>
                 <strong className="service-title-pc">{service.title.pc}</strong>
                 <strong className="service-title-mo">{service.title.mo}</strong>
                 <span className="service-toggle-icon" aria-hidden="true" />
@@ -677,19 +733,26 @@ function AboutPage() {
               >
                 <div className="service-panel-inner">
                   <div className="service-panel-content">
-                    <div className="service-preview">
-                      <video
-                        aria-hidden="true"
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
-                        ref={(video) => {
-                          serviceVideoRefs.current[index] = video
-                        }}
-                      >
-                        <source src={serviceVideo} type="video/mp4" />
-                      </video>
+                    <div
+                      className={`service-preview ${
+                        hasServiceVideo(service) ? '' : 'service-preview--empty'
+                      }`}
+                      aria-hidden={!hasServiceVideo(service)}
+                    >
+                      {hasServiceVideo(service) && (
+                        <video
+                          aria-hidden="true"
+                          loop
+                          muted
+                          playsInline
+                          preload="metadata"
+                          ref={(video) => {
+                            serviceVideoRefs.current[index] = video
+                          }}
+                        >
+                          <source src={service.video} type="video/mp4" />
+                        </video>
+                      )}
                     </div>
                     <div className="service-copy service-copy-pc">
                       <p>{service.english.pc}</p>
@@ -713,13 +776,14 @@ function AboutPage() {
                 </div>
               </div>
             </article>
-          ))}
+              )
+            })}
         </div>
       </section>
 
       <section className="about-organization-section" data-reveal-section>
         <p className="about-page-eyebrow" data-reveal-item style={revealDelay(0)}>
-          {aboutText.organization.eyebrow}
+          {ABOUT_SECTION_EYEBROWS.organization}
         </p>
         <div className="organization-board">
           {organizationItems.map((item, index) => {
@@ -748,10 +812,10 @@ function AboutPage() {
                     <p className="organization-body-mo">{item.body.mo}</p>
                   </div>
                 )}
-                {item.teams && (
+                {item.teams?.length > 0 && (
                   <>
-                    {renderOrganizationTeamsPc(item.teams.pc)}
-                    {renderOrganizationTeamsMo(item.teams.mo)}
+                    {renderOrganizationTeamsPc(item.teams)}
+                    {renderOrganizationTeamsMo(item.teams)}
                   </>
                 )}
               </article>
@@ -762,7 +826,7 @@ function AboutPage() {
 
       <section className="about-member-section">
         <p className="about-page-eyebrow" data-reveal>
-          {aboutText.memberSection.eyebrow}
+          {ABOUT_SECTION_EYEBROWS.members}
         </p>
         {activeMember && (
           <>
@@ -776,7 +840,7 @@ function AboutPage() {
               >
                 <div
                   className="member-track"
-                  style={{ transform: `translateX(-${activeMemberIndex * 100}%)` }}
+                  style={{ transform: `translateX(-${currentMemberIndex * 100}%)` }}
                 >
                   {members.map((member) => (
                     <div className="member-slide" key={member.id}>
@@ -810,7 +874,7 @@ function AboutPage() {
                 >
                   <span
                     style={{
-                      width: `${((activeMemberIndex + 1) / members.length) * 100}%`,
+                      width: `${((currentMemberIndex + 1) / members.length) * 100}%`,
                     }}
                   />
                 </button>

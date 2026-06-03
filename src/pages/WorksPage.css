@@ -37,11 +37,6 @@
   white-space: pre-line;
 }
 
-.work-card-title-mo {
-  display: none;
-  white-space: pre-line;
-}
-
 .works-filter-section {
   padding: 112px var(--content-x) 0;
 }
@@ -307,14 +302,6 @@
     margin-top: 20px;
     font-size: 14px;
     line-height: 1.3;
-  }
-
-  .work-card-title-pc {
-    display: none;
-  }
-
-  .work-card-title-mo {
-    display: block;
   }
 
   .work-card h2,

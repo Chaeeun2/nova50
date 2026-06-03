@@ -1,43 +1,32 @@
 import { useEffect } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import MainPage from './pages/MainPage'
 import AboutPage from './pages/AboutPage'
 import WorksPage from './pages/WorksPage'
 import CareerPage from './pages/CareerPage'
 import ContactPage from './pages/ContactPage'
+import AdminApp from '../admin/Admin'
 import { getSeoForPath } from './config/seo'
 import { applySeo } from './utils/applySeo'
 
 function App() {
+  const location = useLocation()
+
   useEffect(() => {
-    const updateSeo = () => {
-      applySeo(getSeoForPath(window.location.pathname))
-    }
+    applySeo(getSeoForPath(location.pathname))
+  }, [location.pathname])
 
-    updateSeo()
-    window.addEventListener('popstate', updateSeo)
-
-    return () => {
-      window.removeEventListener('popstate', updateSeo)
-    }
-  }, [])
-
-  if (window.location.pathname === '/about') {
-    return <AboutPage />
-  }
-
-  if (window.location.pathname === '/works') {
-    return <WorksPage />
-  }
-
-  if (window.location.pathname === '/career') {
-    return <CareerPage />
-  }
-
-  if (window.location.pathname === '/contact') {
-    return <ContactPage />
-  }
-
-  return <MainPage />
+  return (
+    <Routes>
+      <Route path="/" element={<MainPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/works" element={<WorksPage />} />
+      <Route path="/career" element={<CareerPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/admin/*" element={<AdminApp />} />
+      <Route path="*" element={<MainPage />} />
+    </Routes>
+  )
 }
 
 export default App

@@ -181,14 +181,44 @@
   margin: 0;
 }
 
+.contact-file-upload {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  align-self: flex-start;
+  max-width: 100%;
+  margin-top: 19px;
+}
+
+.contact-file-caption {
+  margin: 2px 0 0;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.contact-file-caption span {
+  display: block;
+}
+
+.contact-file-caption span + span {
+  margin-top: 6px;
+}
+
+.contact-file-caption a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .contact-file-button {
   display: inline-flex !important;
   width: fit-content;
   max-width: 100%;
   align-items: center;
-  align-self: flex-start;
+  flex-shrink: 0;
   gap: 10px;
-  margin-top: 19px;
+  margin-top: 0;
   padding: 8px 25px;
   border: 1px solid var(--color-black);
   border-radius: 12px;
@@ -220,15 +250,27 @@
   line-height: 1.7;
 }
 
-.contact-file-name button {
+.contact-file-remove {
+  display: inline-flex;
   width: 15px;
   height: 15px;
-  margin-left: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 0;
   border: 0;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
   vertical-align: middle;
   cursor: pointer;
+}
+
+.contact-file-remove span {
+  display: block;
 }
 
 .contact-location-section {
@@ -333,8 +375,13 @@
   }
 
   .contact-form label,
+  .contact-form .contact-file-upload,
   .contact-form .contact-file-name {
     margin-bottom: 24px;
+  }
+
+  .contact-file-button {
+    margin-bottom: 0 !important;
   }
 
   .contact-form-order-1 {
@@ -506,6 +553,17 @@
     padding: 18px;
     border-radius: 10px;
     font-size: 16px;
+  }
+
+  .contact-file-upload {
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 0;
+  }
+
+  .contact-file-caption {
+    max-width: none;
+    font-size: 13px;
   }
 
   .contact-file-button {

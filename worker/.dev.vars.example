@@ -1,0 +1,4 @@
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://nova-50.web.app,https://nova-50.firebaseapp.com
+
+# Optional. If set, frontend requests must send Authorization: Bearer <token>.
+ADMIN_UPLOAD_TOKEN=

@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nova-r2-worker",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-02",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ALLOWED_ORIGINS": "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5175,http://127.0.0.1:5175,https://nova-50.web.app,https://nova-50.firebaseapp.com"
+  },
+  "r2_buckets": [
+    {
+      "binding": "NOVA_R2",
+      "bucket_name": "nova-r2"
+    }
+  ]
+}

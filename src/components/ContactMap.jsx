@@ -10,9 +10,9 @@ import {
 import mapPlaceholder from '../assets/contact/map_placeholder.jpg'
 import './ContactMap.css'
 
-const OFFICE_ADDRESS = '서울 강서구 마곡중앙로 165, 805호 (프라이빗타워1차)'
+export const DEFAULT_OFFICE_ADDRESS =
+  '서울 강서구 마곡중앙로 165, 805호 (프라이빗타워1차)'
 
-// 지오코딩 실패 시 사용 (마곡중앙로 165, 프라이빗타워1차)
 const NOVA_OFFICE_FALLBACK = {
   lat: 37.5651325,
   lng: 126.8277183,
@@ -21,8 +21,23 @@ const NOVA_OFFICE_FALLBACK = {
 const MAP_ZOOM = 17
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID'
 
-// 마커를 화면에서 조금 아래로 보이게 할 때 값 조정 (px, 클수록 더 아래)
 const MAP_VIEW_OFFSET_Y = 40
+
+function useDebouncedValue(value, delay) {
+  const [debounced, setDebounced] = useState(value)
+
+  useEffect(() => {
+    if (delay <= 0) {
+      setDebounced(value)
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => setDebounced(value), delay)
+    return () => window.clearTimeout(timeoutId)
+  }, [value, delay])
+
+  return debounced
+}
 
 function getMapCenter(position) {
   const metersPerPixel =
@@ -35,12 +50,28 @@ function getMapCenter(position) {
   }
 }
 
-function MapLocationMarker() {
+function formatMarkerAddress(address) {
+  const commaIndex = address.indexOf(',')
+
+  if (commaIndex === -1) {
+    return address
+  }
+
+  return (
+    <>
+      {address.slice(0, commaIndex + 1)}
+      <br />
+      {address.slice(commaIndex + 1).trim()}
+    </>
+  )
+}
+
+function MapLocationMarker({ address }) {
   return (
     <div className="contact-map-marker">
       <div className="contact-map-label" role="note" aria-label="노바피프티 위치">
         <strong>노바피프티 | NOVAFIFTY</strong>
-        <span>서울 강서구 마곡중앙로 165,<br/>805호 (프라이빗타워1차)</span>
+        <span>{formatMarkerAddress(address)}</span>
       </div>
       <svg
         className="contact-map-pin"
@@ -61,19 +92,28 @@ function MapLocationMarker() {
   )
 }
 
-function MapMarkerLayer() {
+function MapMarkerLayer({ address, displayAddress }) {
   const map = useMap()
   const geocoding = useMapsLibrary('geocoding')
   const [position, setPosition] = useState(null)
-  const geocodedRef = useRef(false)
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
-    if (!geocoding || geocodedRef.current) return
-    geocodedRef.current = true
+    if (!geocoding) {
+      return undefined
+    }
+
+    const geocodeTarget = address?.trim() || DEFAULT_OFFICE_ADDRESS
+    const requestId = requestIdRef.current + 1
+    requestIdRef.current = requestId
 
     const geocoder = new geocoding.Geocoder()
 
-    geocoder.geocode({ address: OFFICE_ADDRESS }, (results, status) => {
+    geocoder.geocode({ address: geocodeTarget }, (results, status) => {
+      if (requestIdRef.current !== requestId) {
+        return
+      }
+
       const nextPosition =
         status === 'OK' && results?.[0]
           ? {
@@ -86,24 +126,35 @@ function MapMarkerLayer() {
       map?.setCenter(getMapCenter(nextPosition))
       map?.setZoom(MAP_ZOOM)
     })
-  }, [geocoding, map])
 
-  if (!position) return null
+    return undefined
+  }, [address, geocoding, map])
+
+  if (!position) {
+    return null
+  }
 
   return (
     <AdvancedMarker position={position} anchorPoint={AdvancedMarkerAnchorPoint.BOTTOM}>
-      <MapLocationMarker />
+      <MapLocationMarker address={displayAddress?.trim() || DEFAULT_OFFICE_ADDRESS} />
     </AdvancedMarker>
   )
 }
 
-function ContactMap() {
+export default function ContactMap({
+  address = DEFAULT_OFFICE_ADDRESS,
+  className = '',
+  geocodeDebounceMs = 0,
+}) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+  const trimmedAddress = address?.trim() || DEFAULT_OFFICE_ADDRESS
+  const geocodeAddress = useDebouncedValue(trimmedAddress, geocodeDebounceMs)
+  const mapClassName = ['contact-map', className].filter(Boolean).join(' ')
 
   if (!apiKey) {
     return (
       <img
-        className="contact-map-fallback"
+        className={['contact-map-fallback', className].filter(Boolean).join(' ')}
         src={mapPlaceholder}
         alt="NOVA50 location map placeholder"
       />
@@ -113,7 +164,7 @@ function ContactMap() {
   return (
     <APIProvider apiKey={apiKey} language="ko" region="KR">
       <Map
-        className="contact-map"
+        className={mapClassName}
         mapId={MAP_ID}
         defaultCenter={NOVA_OFFICE_FALLBACK}
         defaultZoom={MAP_ZOOM}
@@ -121,10 +172,8 @@ function ContactMap() {
         disableDefaultUI={false}
         clickableIcons={false}
       >
-        <MapMarkerLayer />
+        <MapMarkerLayer address={geocodeAddress} displayAddress={trimmedAddress} />
       </Map>
     </APIProvider>
   )
 }
-
-export default ContactMap

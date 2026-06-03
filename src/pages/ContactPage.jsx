@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -6,6 +7,9 @@ import uploadIcon from '../assets/contact/upload.png'
 import { contactPrivacyPolicy } from '../data/privacyPolicy'
 import '../styles/ProjectModal.css'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { getPageContent, submitContactInquiry } from '../services/mainPageService'
+import { uploadFile } from '../services/uploadService'
+import { CONTACT_ATTACHMENT_ACCEPT, validateContactAttachment } from '../utils/contactAttachment'
 import { revealDelay } from '../utils/reveal'
 import './ContactPage.css'
 
@@ -38,6 +42,36 @@ const LOCATION_ADDRESSES = {
   en: '805, 165 Magokjungang-ro, Gangseo-gu, Seoul, Republic of Korea',
 }
 
+export const defaultContactContent = {
+  copy: contactCopy,
+  address: LOCATION_ADDRESSES,
+  phone: '(+82) 2-6949-0550',
+  email: 'hello@nova-50.com',
+}
+
+function mergeDeviceText(defaults = {}, remote = {}) {
+  return { ...defaults, ...remote }
+}
+
+export function mergeContactPageContent(content) {
+  const remote = content || {}
+
+  return {
+    ...defaultContactContent,
+    ...remote,
+    copy: {
+      lead: mergeDeviceText(defaultContactContent.copy.lead, remote.copy?.lead),
+      follow: mergeDeviceText(defaultContactContent.copy.follow, remote.copy?.follow),
+    },
+    address: {
+      ...defaultContactContent.address,
+      ...(remote.address || {}),
+    },
+    phone: remote.phone ?? defaultContactContent.phone,
+    email: remote.email ?? defaultContactContent.email,
+  }
+}
+
 function CopyIcon({ variant = 'dark' }) {
   const fill = variant === 'light' ? 'rgba(255,255,255,0.6)' : 'black'
 
@@ -57,11 +91,36 @@ function CopyIcon({ variant = 'dark' }) {
 }
 
 function ContactPage() {
+  const [pageText, setPageText] = useState(defaultContactContent)
   const [isLocationActive, setIsLocationActive] = useState(false)
   const [selectedFileName, setSelectedFileName] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null)
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useRevealAnimations()
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadContactContent() {
+      try {
+        const data = await getPageContent('contact')
+
+        if (isMounted && data?.content) {
+          setPageText(mergeContactPageContent(data.content))
+        }
+      } catch (error) {
+        console.warn('Contact 데이터 로딩 실패:', error)
+      }
+    }
+
+    loadContactContent()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     const updateLocationState = () => {
@@ -100,9 +159,50 @@ function ContactPage() {
     }
   }, [isPrivacyModalOpen])
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    window.alert('문의가 접수되었습니다.')
+
+    const form = event.currentTarget
+    const formData = new FormData(form)
+
+    try {
+      setIsSubmitting(true)
+
+      let attachment = null
+
+      if (selectedFile) {
+        const attachmentValidation = validateContactAttachment(selectedFile)
+
+        if (!attachmentValidation.ok) {
+          window.alert(attachmentValidation.message)
+          return
+        }
+
+        const uploadResult = await uploadFile(selectedFile, {
+          folder: 'contact',
+          source: 'contact-form',
+        })
+
+        attachment = uploadResult
+      }
+
+      await submitContactInquiry({
+        name: String(formData.get('name') || '').trim(),
+        phone: String(formData.get('phone') || '').trim(),
+        company: String(formData.get('company') || '').trim(),
+        inquiry: String(formData.get('inquiry') || '').trim(),
+        attachment,
+      })
+
+      form.reset()
+      setSelectedFile(null)
+      setSelectedFileName('')
+      window.alert('문의가 접수되었습니다.')
+    } catch (error) {
+      window.alert(`문의 접수에 실패했습니다: ${error.message}`)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const copyToClipboard = async (text) => {
@@ -139,35 +239,35 @@ function ContactPage() {
           style={revealDelay(1)}
         />
         <div className="contact-intro" data-reveal-item style={revealDelay(2)}>
-          <p className="contact-intro-lead-pc">{contactCopy.lead.pc}</p>
-          <p className="contact-intro-lead-mo">{contactCopy.lead.mo}</p>
-          <p className="contact-intro-follow-pc">{contactCopy.follow.pc}</p>
-          <p className="contact-intro-follow-mo">{contactCopy.follow.mo}</p>
+          <p className="contact-intro-lead-pc">{pageText.copy.lead.pc}</p>
+          <p className="contact-intro-lead-mo">{pageText.copy.lead.mo}</p>
+          <p className="contact-intro-follow-pc">{pageText.copy.follow.pc}</p>
+          <p className="contact-intro-follow-mo">{pageText.copy.follow.mo}</p>
           <p className="contact-direct">
             <span className="contact-direct-pc">
-              (+82) 2-6949-0550 ㅣ{' '}
+              {pageText.phone} ㅣ{' '}
               <span className="contact-email-copy">
-                <a href="mailto:hello@nova-50.com">hello@nova-50.com</a>
+                <a href={`mailto:${pageText.email}`}>{pageText.email}</a>
                 <button
                   className="contact-copy-button"
                   type="button"
                   aria-label="이메일 주소 복사"
-                  onClick={() => copyToClipboard('hello@nova-50.com')}
+                  onClick={() => copyToClipboard(pageText.email)}
                 >
                   <CopyIcon />
                 </button>
               </span>
             </span>
             <span className="contact-direct-mo">
-              (+82) 2-6949-0550
+              {pageText.phone}
               <br />
               <span className="contact-email-copy">
-                <a href="mailto:hello@nova-50.com">hello@nova-50.com</a>
+                <a href={`mailto:${pageText.email}`}>{pageText.email}</a>
                 <button
                   className="contact-copy-button"
                   type="button"
                   aria-label="이메일 주소 복사"
-                  onClick={() => copyToClipboard('hello@nova-50.com')}
+                  onClick={() => copyToClipboard(pageText.email)}
                 >
                   <CopyIcon />
                 </button>
@@ -204,8 +304,8 @@ function ContactPage() {
                 </button>
               </span>
             </label>
-            <button className="contact-submit contact-form-order-8" type="submit">
-              SUBMIT <span aria-hidden="true">→</span>
+            <button className="contact-submit contact-form-order-8" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'} <span aria-hidden="true">→</span>
             </button>
           </div>
 
@@ -214,25 +314,58 @@ function ContactPage() {
               <span>About your inquiry</span>
               <textarea name="inquiry" />
             </label>
-            <label className="contact-file-button contact-form-order-5">
-              <input
-                name="attachment"
-                type="file"
-                onChange={(event) => {
-                  setSelectedFileName(event.target.files?.[0]?.name ?? '')
-                }}
-              />
-              <img className="contact-file-button-icon" src={uploadIcon} alt="" aria-hidden="true" />
-              Upload files
-            </label>
+            <div className="contact-file-upload contact-form-order-5">
+              <label className="contact-file-button">
+                <input
+                  name="attachment"
+                  type="file"
+                  accept={CONTACT_ATTACHMENT_ACCEPT}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] || null
+
+                    if (!file) {
+                      setSelectedFile(null)
+                      setSelectedFileName('')
+                      return
+                    }
+
+                    const validation = validateContactAttachment(file)
+
+                    if (!validation.ok) {
+                      window.alert(validation.message)
+                      event.target.value = ''
+                      setSelectedFile(null)
+                      setSelectedFileName('')
+                      return
+                    }
+
+                    setSelectedFile(file)
+                    setSelectedFileName(file.name)
+                  }}
+                />
+                <img className="contact-file-button-icon" src={uploadIcon} alt="" aria-hidden="true" />
+                Upload files
+              </label>
+              <p className="contact-file-caption">
+                <span>최대 10MB까지 첨부 가능합니다.<br/>대용량 파일은{' '}
+                  <a href={`mailto:${pageText.email}`}>{pageText.email}</a>으로 보내주세요.
+                </span>
+              </p>
+            </div>
             {selectedFileName && (
               <p className="contact-file-name contact-form-order-6">
                 {selectedFileName}
                 <button
                   type="button"
-                  onClick={() => setSelectedFileName('')}
+                  className="contact-file-remove"
+                  onClick={() => {
+                    setSelectedFile(null)
+                    setSelectedFileName('')
+                  }}
                   aria-label="첨부 파일 삭제"
-                />
+                >
+                  <span aria-hidden="true">×</span>
+                </button>
               </p>
             )}
           </div>
@@ -245,12 +378,12 @@ function ContactPage() {
           <div className="contact-location-info" data-reveal-item style={revealDelay(1)}>
             <p>
               <span className="contact-address-copy">
-                {LOCATION_ADDRESSES.ko}
+                {pageText.address.ko}
                 <button
                   className="contact-copy-button contact-copy-button--light"
                   type="button"
                   aria-label="한글 주소 복사"
-                  onClick={() => copyToClipboard(LOCATION_ADDRESSES.ko)}
+                  onClick={() => copyToClipboard(pageText.address.ko)}
                 >
                   <CopyIcon variant="light" />
                 </button>
@@ -258,24 +391,24 @@ function ContactPage() {
             </p>
             <p>
               <span className="contact-address-copy">
-                {LOCATION_ADDRESSES.en}
+                {pageText.address.en}
                 <button
                   className="contact-copy-button contact-copy-button--light"
                   type="button"
                   aria-label="영문 주소 복사"
-                  onClick={() => copyToClipboard(LOCATION_ADDRESSES.en)}
+                  onClick={() => copyToClipboard(pageText.address.en)}
                 >
                   <CopyIcon variant="light" />
                 </button>
               </span>
             </p>
             <p>
-              (+82) 2-6949-0550 ㅣ <a href="mailto:hello@nova-50.com">hello@nova-50.com</a>
+              {pageText.phone} ㅣ <a href={`mailto:${pageText.email}`}>{pageText.email}</a>
             </p>
           </div>
         </div>
         <div className="contact-map-frame" data-reveal-item style={revealDelay(2)}>
-          <ContactMap />
+          <ContactMap address={pageText.address.ko} />
         </div>
       </section>
 

@@ -1,39 +1,40 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import aboutCardBg from '../assets/Main_about_BG.png'
-import aboutCardBgMo from '../assets/about_BG_mo.jpg'
-import worksCardBg from '../assets/Main_works_BG.png'
-import worksCardBgMo from '../assets/works_BG_mo.jpg'
 import hero01 from '../assets/hero_01.jpg'
 import hero02 from '../assets/hero_02.jpg'
 import hero03 from '../assets/hero_03.jpg'
 import heroMo01 from '../assets/main_mo_01.jpg'
 import heroMo02 from '../assets/main_mo_02.jpg'
 import heroMo03 from '../assets/main_mo_03.jpg'
+import {
+  defaultMainPageContent,
+  getResponsiveText,
+  normalizeMainPageContent,
+} from '../data/mainPageContent'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
+import { getMainPageContent, getMainPageImages, getPartnerLogos } from '../services/mainPageService'
 import { revealDelay } from '../utils/reveal'
 import './MainPage.css'
 
-const heroSlides = [hero01, hero02, hero03]
-const heroSlidesMo = [heroMo01, heroMo02, heroMo03]
+const fallbackHeroSlides = [hero01, hero02, hero03]
+const fallbackHeroSlidesMo = [heroMo01, heroMo02, heroMo03]
 const heroSlideDuration = 5000
+/** 17개 로고·60초 루프 기준으로 맞춘 스크롤 속도(px/s) */
+const PARTNER_CAROUSEL_SPEED_PX_PER_SEC = 33
+const PARTNER_CAROUSEL_MIN_DURATION_SEC = 20
 const logoModules = import.meta.glob('../assets/logo/*.{png,jpg,jpeg,webp,svg}', {
   eager: true,
   query: '?url',
   import: 'default',
 })
-const partnerLogos = Object.entries(logoModules)
+const fallbackPartnerLogos = Object.entries(logoModules)
   .sort(([pathA], [pathB]) => pathA.localeCompare(pathB, undefined, { numeric: true }))
   .map(([path, src]) => ({
     name: path.split('/').pop().replace(/\.[^.]+$/, ''),
     src,
   }))
-const partnerLogoRowSplit = Math.ceil(partnerLogos.length / 2)
-const partnerLogoRows = [
-  partnerLogos.slice(0, partnerLogoRowSplit),
-  partnerLogos.slice(partnerLogoRowSplit),
-]
 
 function renderPartnerTrack(logos, trackKey) {
   return (
@@ -44,79 +45,43 @@ function renderPartnerTrack(logos, trackKey) {
           key={`${trackKey}-${partner.name}-${index}`}
           aria-hidden={index >= logos.length}
         >
-          <img src={partner.src} alt={index < logos.length ? partner.name : ''} />
+          <img src={partner.src || partner.imageUrl} alt={index < logos.length ? partner.name : ''} />
         </div>
       ))}
     </div>
   )
 }
 
-const mainPageText = {
-  section01: {
-    title: {
-      pc: `Unique experience
-designers`,
-      mo: `unique
-experience
-designers`,
-    },
-  },
-  section02: {
-    eyebrow: 'NOVA50 — Unique Experience Designers',
-    title: `We design
-the moment
-things
-feel different.`,
-    content: {
-      title: `변화가 느껴지는 순간,
-그 시작에 NOVA50가 있습니다.`,
-      body: {
-        pc: `새로운 경험은 기억에 남고, 특별한 경험은 사람을 변화시킵니다.
-우리는 넓은 시야와 깊은 통찰로 문제의 본질을 이해하고,
-단순한 솔루션을 넘어 사람들의 마음을 움직이는 경험을 만듭니다.
+const splitLines = (text) => text.split('\n')
 
-예상을 뛰어넘는 순간, 오래도록 기억에 남는 경험.
-그 경험이 노바피프티가 존재하는 이유입니다.`,
-        mo: `새로운 경험은 기억에 남고,
-특별한 경험은 사람을 변화시킵니다.
-우리는 넓은 시야와 깊은 통찰로
-문제의 본질을 이해하고,
-단순한 솔루션을 넘어 사람들의 마음을
-움직이는 경험을 만듭니다.
+function getCardImageSources(card, index, cards) {
+  const fallbackCard = cards[index] || cards[0]
+  const fallbackImage = fallbackCard?.image || { pc: '', mo: '' }
 
-예상을 뛰어넘는 순간,
-오래도록 기억에 남는 경험.
-그 경험이 노바피프티가 존재하는 이유입니다.`,
-      },
-    },
-  },
-  section03: {
-    cards: [
-      {
-        title: 'works',
-        description: 'Beyond solutions, create a mind-moving experience.',
-      },
-      {
-        title: 'about',
-        description: 'Change begins in NOVA50.',
-      },
-    ],
-  },
-  section04: {
-    caption: 'NOVA50 is where change begins.',
-    title: {
-      highlight: '변화',
-      text: `가 시작되는 지점을
-함께 만들어갑니다.`,
-    },
-  },
+  return {
+    pc: getResponsiveText(card.image, 'pc') || getResponsiveText(fallbackImage, 'pc'),
+    mo: getResponsiveText(card.image, 'mo') || getResponsiveText(fallbackImage, 'mo'),
+  }
 }
 
-const cardImages = [
-  { pc: worksCardBg, mo: worksCardBgMo },
-  { pc: aboutCardBg, mo: aboutCardBgMo },
-]
-const splitLines = (text) => text.split('\n')
+const renderEmphasisText = (text, keyPrefix = 'emphasis') =>
+  String(text)
+    .split(/(\*[^*]+\*)/g)
+    .map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <strong key={`${keyPrefix}-${part}-${index}`}>{part.slice(1, -1)}</strong>
+    }
+
+    return part
+  })
+
+const renderRichText = (text, keyPrefix) =>
+  String(text)
+    .split('\n')
+    .flatMap((line, lineIndex) => [
+      ...(lineIndex > 0 ? [<br key={`${keyPrefix}-br-${lineIndex}`} />] : []),
+      ...renderEmphasisText(line, `${keyPrefix}-${lineIndex}`),
+    ])
 
 function renderHeroTitleLines(lines, keyPrefix) {
   return lines.map((line, index) => (
@@ -126,21 +91,94 @@ function renderHeroTitleLines(lines, keyPrefix) {
       key={`${keyPrefix}-${index}`}
       style={revealDelay(index + 1)}
     >
-      {line}
+      {renderRichText(line, `${keyPrefix}-${index}`)}
     </span>
   ))
 }
 
 function MainPage() {
+  const [mainPageText, setMainPageText] = useState(defaultMainPageContent)
+  const [mainImages, setMainImages] = useState({ horizontal: [], vertical: [] })
+  const [dbPartnerLogos, setDbPartnerLogos] = useState([])
   const [activeHeroSlide, setActiveHeroSlide] = useState(0)
   const [isHeroTransitionEnabled, setIsHeroTransitionEnabled] = useState(true)
   const [isPageBottomActive, setIsPageBottomActive] = useState(false)
+  const isMobile = useMediaQuery('(max-width: 720px)')
+  const currentDevice = isMobile ? 'mo' : 'pc'
+  const heroSlides = mainImages.horizontal.length
+    ? mainImages.horizontal.map((image) => image.imageUrl)
+    : fallbackHeroSlides
+  const heroSlidesMo = mainImages.vertical.length
+    ? mainImages.vertical.map((image) => image.imageUrl)
+    : fallbackHeroSlidesMo
   const renderedHeroSlides =
     heroSlides.length > 1 ? [...heroSlides, heroSlides[0]] : heroSlides
   const heroProgress = ((activeHeroSlide % heroSlides.length) + 1) / heroSlides.length
   const heroTitleLinesPc = splitLines(mainPageText.section01.title.pc)
   const heroTitleLinesMo = splitLines(mainPageText.section01.title.mo)
-  const section02TitleLines = splitLines(mainPageText.section02.title)
+  const section02TitleLines = splitLines(getResponsiveText(mainPageText.section02.title, currentDevice))
+  const partnerLogos = dbPartnerLogos.length ? dbPartnerLogos : fallbackPartnerLogos
+  const partnerLogoRowSplit = Math.ceil(partnerLogos.length / 2)
+  const partnerLogoRows = [
+    partnerLogos.slice(0, partnerLogoRowSplit),
+    partnerLogos.slice(partnerLogoRowSplit),
+  ]
+  const partnerCarouselRef = useRef(null)
+
+  useLayoutEffect(() => {
+    const carouselWrap = partnerCarouselRef.current
+
+    if (!carouselWrap || partnerLogos.length === 0) {
+      return undefined
+    }
+
+    let frameId = 0
+
+    const updatePartnerCarouselDurations = () => {
+      cancelAnimationFrame(frameId)
+      frameId = window.requestAnimationFrame(() => {
+        carouselWrap.querySelectorAll('.partner-track').forEach((track) => {
+          const loopWidth = track.scrollWidth / 2
+
+          if (!loopWidth) {
+            return
+          }
+
+          const loopOffset =
+            Number.parseFloat(
+              getComputedStyle(track).getPropertyValue('--partner-loop-offset'),
+            ) || 0
+          const distance = loopWidth + loopOffset
+          const duration = Math.max(
+            PARTNER_CAROUSEL_MIN_DURATION_SEC,
+            distance / PARTNER_CAROUSEL_SPEED_PX_PER_SEC,
+          )
+
+          track.style.setProperty('--partner-carousel-duration', `${duration.toFixed(2)}s`)
+        })
+      })
+    }
+
+    updatePartnerCarouselDurations()
+
+    const resizeObserver = new ResizeObserver(updatePartnerCarouselDurations)
+    carouselWrap.querySelectorAll('.partner-track').forEach((track) => {
+      resizeObserver.observe(track)
+    })
+    carouselWrap.querySelectorAll('.partner-track img').forEach((image) => {
+      if (!image.complete) {
+        image.addEventListener('load', updatePartnerCarouselDurations, { once: true })
+      }
+    })
+
+    window.addEventListener('resize', updatePartnerCarouselDurations)
+
+    return () => {
+      cancelAnimationFrame(frameId)
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', updatePartnerCarouselDurations)
+    }
+  }, [partnerLogos, isMobile])
 
   useEffect(() => {
     if (heroSlides.length <= 1) {
@@ -148,10 +186,76 @@ function MainPage() {
     }
 
     const slideTimer = window.setInterval(() => {
-      setActiveHeroSlide((currentSlide) => currentSlide + 1)
+      if (document.hidden) {
+        return
+      }
+
+      setActiveHeroSlide((currentSlide) =>
+        currentSlide >= heroSlides.length ? 1 : currentSlide + 1,
+      )
     }, heroSlideDuration)
 
     return () => window.clearInterval(slideTimer)
+  }, [heroSlides.length])
+
+  useEffect(() => {
+    if (heroSlides.length <= 1) {
+      return undefined
+    }
+
+    const resetHeroPosition = () => {
+      if (document.hidden) {
+        return
+      }
+
+      setIsHeroTransitionEnabled(false)
+      setActiveHeroSlide((currentSlide) => currentSlide % heroSlides.length)
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          setIsHeroTransitionEnabled(true)
+        })
+      })
+    }
+
+    document.addEventListener('visibilitychange', resetHeroPosition)
+
+    return () => {
+      document.removeEventListener('visibilitychange', resetHeroPosition)
+    }
+  }, [heroSlides.length])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadMainPageData() {
+      try {
+        const [content, images, logos] = await Promise.all([
+          getMainPageContent(),
+          getMainPageImages(),
+          getPartnerLogos(),
+        ])
+
+        if (!isMounted) {
+          return
+        }
+
+        if (content) {
+          setMainPageText(normalizeMainPageContent(content))
+        }
+
+        setMainImages(images)
+        setDbPartnerLogos(logos)
+      } catch (error) {
+        console.warn('메인 페이지 데이터 로딩 실패:', error)
+      }
+    }
+
+    loadMainPageData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   useRevealAnimations()
@@ -175,7 +279,7 @@ function MainPage() {
   }, [])
 
   const handleHeroSlideEnd = (event) => {
-    if (event.propertyName !== 'transform' || activeHeroSlide !== heroSlides.length) {
+    if (event.propertyName !== 'transform' || activeHeroSlide < heroSlides.length) {
       return
     }
 
@@ -239,7 +343,7 @@ function MainPage() {
         data-reveal-section
       >
         <p className="eyebrow" data-reveal-item style={revealDelay(0)}>
-          {mainPageText.section02.eyebrow}
+          {getResponsiveText(mainPageText.section02.eyebrow, currentDevice)}
         </p>
         <h2>
           {section02TitleLines.map((line, index) => (
@@ -249,7 +353,7 @@ function MainPage() {
               key={line}
               style={revealDelay(index + 1)}
             >
-              {line}
+              {renderRichText(line, `section02-title-${index}`)}
             </span>
           ))}
         </h2>
@@ -262,21 +366,24 @@ function MainPage() {
             style={revealDelay(section02TitleLines.length + 1)}
           />
           <h3 data-reveal-item style={revealDelay(section02TitleLines.length + 2)}>
-            {mainPageText.section02.content.title}
+            {renderRichText(
+              getResponsiveText(mainPageText.section02.content.title, currentDevice),
+              'section02-content-title',
+            )}
           </h3>
           <p
             className="about-copy about-copy-pc"
             data-reveal-item
             style={revealDelay(section02TitleLines.length + 3)}
           >
-            {mainPageText.section02.content.body.pc}
+            {renderRichText(getResponsiveText(mainPageText.section02.content.body, 'pc'), 'section02-body-pc')}
           </p>
           <p
             className="about-copy about-copy-mo"
             data-reveal-item
             style={revealDelay(section02TitleLines.length + 4)}
           >
-            {mainPageText.section02.content.body.mo}
+            {renderRichText(getResponsiveText(mainPageText.section02.content.body, 'mo'), 'section02-body-mo')}
           </p>
         </div>
       </section>
@@ -287,21 +394,28 @@ function MainPage() {
         aria-label="Featured links"
         data-reveal-section
       >
-        {mainPageText.section03.cards.map((card, index) => (
+        {mainPageText.section03.cards.map((card, index) => {
+          const cardImages = getCardImageSources(
+            card,
+            index,
+            mainPageText.section03.cards,
+          )
+
+          return (
           <a
             className={`feature-card ${index === 0 ? 'feature-card-wide' : ''}`}
             data-reveal-item
-            href={card.title === 'about' ? '/about' : '/works'}
-            key={card.title}
+            href={card.path || (getResponsiveText(card.title, 'pc') === 'about' ? '/about' : '/works')}
+            key={getResponsiveText(card.title, 'pc')}
             style={revealDelay(index)}
           >
             <picture>
-              <source media="(max-width: 720px)" srcSet={cardImages[index].mo} />
-              <img src={cardImages[index].pc} alt="" aria-hidden="true" />
+              <source media="(max-width: 720px)" srcSet={cardImages.mo} />
+              <img src={cardImages.pc} alt="" aria-hidden="true" />
             </picture>
             <span className="card-content">
-              <strong>{card.title}</strong>
-              <span>{card.description}</span>
+              <strong>{renderRichText(getResponsiveText(card.title, currentDevice), `card-title-${index}`)}</strong>
+              <span>{renderRichText(getResponsiveText(card.description, currentDevice), `card-description-${index}`)}</span>
             </span>
             <span className="card-arrow" aria-hidden="true">
               <svg
@@ -323,19 +437,22 @@ function MainPage() {
               </svg>
             </span>
           </a>
-        ))}
+          )
+        })}
       </section>
 
       <section className="partners-section" id="contact" data-reveal-section>
         <div className="partners-title">
-          <p data-reveal-item style={revealDelay(0)}>{mainPageText.section04.caption}</p>
+          <p data-reveal-item style={revealDelay(0)}>
+            {renderRichText(getResponsiveText(mainPageText.section04.caption, currentDevice), 'section04-caption')}
+          </p>
           <h2 data-reveal-item style={revealDelay(1)}>
-            <span>{mainPageText.section04.title.highlight}</span>
-            {mainPageText.section04.title.text}
+            {renderRichText(getResponsiveText(mainPageText.section04.title.text, currentDevice), 'section04-title')}
           </h2>
         </div>
 
         <div
+          ref={partnerCarouselRef}
           className="partner-carousel-wrap"
           aria-label="Partner logos"
           data-reveal-item

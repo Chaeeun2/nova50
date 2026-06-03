@@ -1,0 +1,130 @@
+.admin-image-uploader {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.admin-upload-area {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #fafafa;
+  border: 1.5px dashed #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-upload-area:hover {
+  background-color: #f0f8ff;
+  border-color: #007bff;
+}
+
+.admin-upload-area.uploading {
+  cursor: not-allowed;
+  background-color: #f0fff0;
+  border-color: #28a745;
+  opacity: 0.7;
+}
+
+.admin-upload-placeholder p {
+  margin: 8px 0;
+  color: #666;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.admin-upload-placeholder small {
+  color: #999;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.admin-upload-status {
+  text-align: center;
+}
+
+.admin-upload-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border: 4px solid #f3f3f3;
+  border-top-color: #007bff;
+  border-radius: 50%;
+  animation: admin-spin 1s linear infinite;
+}
+
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.admin-progress-bar {
+  width: 100%;
+  height: 6px;
+  margin-top: 12px;
+  overflow: hidden;
+  background-color: #e9ecef;
+  border-radius: 3px;
+}
+
+.admin-progress-fill {
+  height: 100%;
+  background-color: #007bff;
+  transition: width 0.3s ease;
+}
+
+.admin-upload-error {
+  padding: 12px;
+  margin-top: 12px;
+  color: #721c24;
+  font-size: 14px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}
+
+.admin-preview-container {
+  padding: 16px;
+  margin-top: 20px;
+  background-color: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.admin-preview-container h4 {
+  margin: 0 0 16px;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.admin-preview-item {
+  text-align: center;
+}
+
+.admin-preview-image {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.admin-preview-name {
+  display: block;
+  margin-top: 4px;
+  color: #6c757d;
+  font-size: 11px;
+  line-height: 1.2;
+  word-break: break-all;
+}
