@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import logoBlack from '../assets/logo_black.png'
-import logoWhite from '../assets/logo_white.png'
+const logoBlack = '/logo_black.png'
+const logoWhite = '/logo_white.png'
 import './Header.css'
 
 const navItems = [

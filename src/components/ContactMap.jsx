@@ -7,7 +7,7 @@ import {
   useMap,
   useMapsLibrary,
 } from '@vis.gl/react-google-maps'
-import mapPlaceholder from '../assets/contact/map_placeholder.jpg'
+const mapPlaceholder = '/contact/map_placeholder.jpg'
 import './ContactMap.css'
 
 export const DEFAULT_OFFICE_ADDRESS =

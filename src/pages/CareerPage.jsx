@@ -423,7 +423,7 @@ function CareerPage() {
           data-reveal-item
           style={revealDelay(2 + ctaDisplayRows.length)}
         >
-          <a href="../assets/career/NOVA50_지원서.docx" download>
+          <a href="/career/NOVA50_지원서.docx" download>
             지원양식 다운로드
           </a>
           <button type="button" onClick={copyEmail}>

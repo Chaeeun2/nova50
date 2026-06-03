@@ -1,12 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import hero01 from '../assets/hero_01.jpg'
-import hero02 from '../assets/hero_02.jpg'
-import hero03 from '../assets/hero_03.jpg'
-import heroMo01 from '../assets/main_mo_01.jpg'
-import heroMo02 from '../assets/main_mo_02.jpg'
-import heroMo03 from '../assets/main_mo_03.jpg'
 import {
   defaultMainPageContent,
   getResponsiveText,
@@ -19,23 +13,13 @@ import { getMainPageContent, getMainPageImages, getPartnerLogos } from '../servi
 import { revealDelay } from '../utils/reveal'
 import './MainPage.css'
 
-const fallbackHeroSlides = [hero01, hero02, hero03]
-const fallbackHeroSlidesMo = [heroMo01, heroMo02, heroMo03]
+const fallbackHeroSlides = []
+const fallbackHeroSlidesMo = []
 const heroSlideDuration = 5000
 /** 17개 로고·60초 루프 기준으로 맞춘 스크롤 속도(px/s) */
 const PARTNER_CAROUSEL_SPEED_PX_PER_SEC = 33
 const PARTNER_CAROUSEL_MIN_DURATION_SEC = 20
-const logoModules = import.meta.glob('../assets/logo/*.{png,jpg,jpeg,webp,svg}', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-})
-const fallbackPartnerLogos = Object.entries(logoModules)
-  .sort(([pathA], [pathB]) => pathA.localeCompare(pathB, undefined, { numeric: true }))
-  .map(([path, src]) => ({
-    name: path.split('/').pop().replace(/\.[^.]+$/, ''),
-    src,
-  }))
+const fallbackPartnerLogos = []
 
 function renderPartnerTrack(logos, trackKey) {
   return (

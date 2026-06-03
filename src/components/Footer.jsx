@@ -1,5 +1,5 @@
-import logoBlack from '../assets/logo_black.png'
-import logoWhite from '../assets/logo_white.png'
+const logoBlack = '/logo_black.png'
+const logoWhite = '/logo_white.png'
 import './Footer.css'
 
 const footerContact = {

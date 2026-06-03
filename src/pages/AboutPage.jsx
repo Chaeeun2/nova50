@@ -14,25 +14,8 @@ import {
 import { revealDelay } from '../utils/reveal'
 import './AboutPage.css'
 
-const memberImageModules = import.meta.glob('../assets/about/member_*.{png,jpg,jpeg,webp}', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-})
-
-const memberImages = Object.entries(memberImageModules)
-  .sort(([pathA], [pathB]) => pathA.localeCompare(pathB, undefined, { numeric: true }))
-  .map(([path, src]) => ({
-    id: path.split('/').pop().replace(/\.[^.]+$/, ''),
-    src,
-  }))
-
-function resolveMemberImage(member, index) {
-  if (member?.image) {
-    return member.image
-  }
-
-  return memberImages[index]?.src ?? memberImages[0]?.src ?? ''
+function resolveMemberImage(member) {
+  return member?.image || ''
 }
 
 const splitLines = (text) => text.split('\n')
@@ -106,8 +89,8 @@ function AboutPage() {
   const organizationItems = pageText.organization.items
   const members = (pageText.members ?? []).map((member, index) => ({
     ...member,
-    id: member.id || memberImages[index]?.id || `member-${index + 1}`,
-    image: resolveMemberImage(member, index),
+    id: member.id || `member-${index + 1}`,
+    image: resolveMemberImage(member),
   }))
   const currentMemberIndex =
     members.length === 0 ? 0 : Math.min(activeMemberIndex, members.length - 1)
