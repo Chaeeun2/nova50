@@ -52,17 +52,24 @@ export const imageService = {
   validateDocumentFile(file) {
     const allowedTypes = [
       'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/x-hwp',
+      'application/haansofthwp',
+      'application/vnd.hancom.hwp',
     ]
-    const allowedExtensions = ['.pdf', '.docx', '.doc']
+    const allowedExtensions = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.zip', '.hwp']
     const maxSize = 10 * 1024 * 1024
     const extension = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : ''
     const hasAllowedType = file.type && allowedTypes.includes(file.type)
     const hasAllowedExtension = allowedExtensions.includes(extension)
 
     if (!hasAllowedType && !hasAllowedExtension) {
-      throw new Error('지원되지 않는 파일 형식입니다. (PDF, DOC, DOCX만 허용)')
+      throw new Error('지원되지 않는 파일 형식입니다. (PDF, DOC, DOCX, PPT, PPTX, ZIP, HWP만 허용)')
     }
 
     if (file.size > maxSize) {

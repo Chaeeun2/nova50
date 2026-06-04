@@ -1035,7 +1035,7 @@ export default function CareerManager() {
 
                 <div className="admin-upload-section" style={{ marginTop: '28px' }}>
                   <h4>지원양식 파일</h4>
-                  <small>PDF, DOC, DOCX (최대 10MB). 저장 시 R2에 업로드됩니다.</small>
+                  <small>PDF, DOC, DOCX, PPT, PPTX, ZIP, HWP (최대 10MB). 저장 시 R2에 업로드됩니다.</small>
                   {(() => {
                     const pendingFile = content.cta.applicationFormMedia?.pendingFile
                     const pendingPreviewUrl = getMediaDisplayUrl(content.cta.applicationFormMedia)
@@ -1081,8 +1081,8 @@ export default function CareerManager() {
                     deferUpload
                     maxFiles={1}
                     showPreview={false}
-                    acceptedTypes="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,.doc,.docx"
-                    hintText="PDF, DOC, DOCX 지원 (최대 10MB)"
+                    acceptedTypes="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip,application/x-zip-compressed,application/x-hwp,application/haansofthwp,application/vnd.hancom.hwp,.pdf,.doc,.docx,.ppt,.pptx,.zip,.hwp"
+                    hintText="PDF, DOC, DOCX, PPT, PPTX, ZIP, HWP 지원 (최대 10MB)"
                     placeholderTitle="지원양식 파일 업로드"
                     validateFile={(file) => imageService.validateDocumentFile(file)}
                     onFilesSelected={({ previews }) => {
