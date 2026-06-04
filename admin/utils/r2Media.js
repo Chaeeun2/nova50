@@ -97,6 +97,7 @@ export async function uploadMediaRef(
     return {
       url: media?.url || '',
       r2Key: media?.r2Key || getR2KeyFromPublicUrl(media?.url) || '',
+      fileName: media?.fileName || '',
     }
   }
 
@@ -114,6 +115,7 @@ export async function uploadMediaRef(
   return {
     url: result.publicUrl || result.imageUrl || result.fileUrl || '',
     r2Key: result.key || result.r2Key || '',
+    fileName: result.fileName || file.name,
   }
 }
 

@@ -35,6 +35,9 @@ export function createEmptyCareerContent() {
       copy: { pc: '', mo: '' },
       notes: '',
       openings: [],
+      contactEmail: 'hello@nova-50.com',
+      applicationFormUrl: '/career/NOVA50_지원서.docx',
+      applicationFormFileName: 'NOVA50_지원서.docx',
     },
   }
 }

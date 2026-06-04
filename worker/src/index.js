@@ -338,6 +338,23 @@ async function handleGetFile(request, env, corsHeaders) {
   headers.set('etag', object.httpEtag)
   headers.set('cache-control', 'public, max-age=31536000, immutable')
 
+  const encodedOriginalName = object.customMetadata?.originalName
+
+  if (encodedOriginalName) {
+    try {
+      const originalName = decodeURIComponent(encodedOriginalName)
+      const asciiFallback = originalName.replace(/[^\x20-\x7E]/g, '_') || 'download'
+      const utf8FileName = encodeURIComponent(originalName)
+
+      headers.set(
+        'content-disposition',
+        `attachment; filename="${asciiFallback}"; filename*=UTF-8''${utf8FileName}`,
+      )
+    } catch {
+      // ignore malformed originalName metadata
+    }
+  }
+
   return new Response(object.body, { headers })
 }
 

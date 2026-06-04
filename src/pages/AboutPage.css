@@ -1034,7 +1034,7 @@
   }
 
   .service-trigger .service-number {
-    display: block;
+    display: none;
     grid-column: 1;
     grid-row: 1;
     font-size: 28px;

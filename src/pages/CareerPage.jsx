@@ -132,11 +132,51 @@ export function normalizeCareerCtaOpenings(openings = [], teams = []) {
   })
 }
 
+export function getCareerApplicationFormFileNameFromUrl(url = '') {
+  const trimmed = String(url || '').trim()
+
+  if (!trimmed) {
+    return ''
+  }
+
+  try {
+    const pathname = trimmed.startsWith('http') ? new URL(trimmed).pathname : trimmed
+    const segment = pathname.split('/').filter(Boolean).pop() || ''
+
+    return decodeURIComponent(segment)
+  } catch {
+    const segment = trimmed.split('/').filter(Boolean).pop() || trimmed
+
+    return decodeURIComponent(segment)
+  }
+}
+
+export function getCareerApplicationFormDownloadName(cta = {}) {
+  const stored = String(cta.applicationFormFileName || '').trim()
+
+  if (stored) {
+    return stored
+  }
+
+  return getCareerApplicationFormFileNameFromUrl(cta.applicationFormUrl)
+}
+
 export function normalizeCareerCta(cta = {}) {
-  const { teams, ...ctaWithoutTeams } = cta
+  const { teams, applicationFormMedia, ...ctaWithoutTeams } = cta
+  const defaults = createEmptyCareerContent().cta
+  const applicationFormUrl =
+    String(cta.applicationFormUrl ?? defaults.applicationFormUrl).trim() ||
+    defaults.applicationFormUrl
 
   return {
     ...ctaWithoutTeams,
+    contactEmail: String(cta.contactEmail ?? defaults.contactEmail).trim() || defaults.contactEmail,
+    applicationFormUrl,
+    applicationFormFileName:
+      String(cta.applicationFormFileName || '').trim() ||
+      getCareerApplicationFormFileNameFromUrl(applicationFormUrl) ||
+      defaults.applicationFormFileName,
+    applicationFormR2Key: String(cta.applicationFormR2Key || '').trim(),
     openings: normalizeCareerCtaOpenings(cta.openings, teams),
     notes: formatCareerNotesForEditor(cta.notes),
   }
@@ -268,8 +308,12 @@ function CareerPage() {
     }
   }, [])
 
+  const contactEmail = pageText.cta.contactEmail
+  const applicationFormUrl = pageText.cta.applicationFormUrl
+  const applicationFormDownloadName = getCareerApplicationFormDownloadName(pageText.cta)
+
   const copyEmail = async () => {
-    const email = 'hello@nova-50.com'
+    const email = contactEmail
 
     try {
       await navigator.clipboard?.writeText(email)
@@ -423,12 +467,12 @@ function CareerPage() {
           data-reveal-item
           style={revealDelay(2 + ctaDisplayRows.length)}
         >
-          <a href="/career/NOVA50_지원서.docx" download>
+          <a href={applicationFormUrl} download={applicationFormDownloadName || undefined}>
             지원양식 다운로드
           </a>
           <button type="button" onClick={copyEmail}>
             <strong>메일 주소 복사하기</strong>
-            <span>hello@nova-50.com</span>
+            <span>{contactEmail}</span>
           </button>
         </div>
         <ul className="career-cta-notes">

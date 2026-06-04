@@ -49,6 +49,29 @@ export const imageService = {
     return true
   },
 
+  validateDocumentFile(file) {
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ]
+    const allowedExtensions = ['.pdf', '.docx', '.doc']
+    const maxSize = 10 * 1024 * 1024
+    const extension = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : ''
+    const hasAllowedType = file.type && allowedTypes.includes(file.type)
+    const hasAllowedExtension = allowedExtensions.includes(extension)
+
+    if (!hasAllowedType && !hasAllowedExtension) {
+      throw new Error('지원되지 않는 파일 형식입니다. (PDF, DOC, DOCX만 허용)')
+    }
+
+    if (file.size > maxSize) {
+      throw new Error('파일 크기가 너무 큽니다. (최대 10MB)')
+    }
+
+    return true
+  },
+
   validateVideoFile(file) {
     const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime']
     const allowedExtensions = ['.mp4', '.webm', '.mov']

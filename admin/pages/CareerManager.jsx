@@ -18,6 +18,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { createEmptyCareerContent } from '../../src/data/pageContentDefaults'
 import {
   formatCareerNotesForEditor,
+  getCareerApplicationFormDownloadName,
   normalizeCareerCta,
   normalizeCareerCtaOpenings,
 } from '../../src/pages/CareerPage'
@@ -25,6 +26,7 @@ import AdminEditModal from '../components/AdminEditModal'
 import AdminLayout from '../components/AdminLayout'
 import ImageUploader from '../components/ImageUploader'
 import PendingMediaPreview, { resetMediaRef } from '../components/PendingMediaPreview'
+import { imageService } from '../services/imageService'
 import { pageContentService } from '../services/dataService'
 import {
   createEmptyMediaRef,
@@ -45,10 +47,14 @@ function mergeContent(content) {
     ...cloneDefaultContent(),
     ...(content || {}),
   }
+  const rawCta = merged.cta || {}
 
   return {
     ...merged,
-    cta: normalizeCareerCta(merged.cta),
+    cta: {
+      ...normalizeCareerCta(rawCta),
+      ...(rawCta.applicationFormMedia ? { applicationFormMedia: rawCta.applicationFormMedia } : {}),
+    },
   }
 }
 
@@ -143,7 +149,28 @@ function resolveWelfareIconMedia(item) {
   return mediaRefFromUrl(item.icon)
 }
 
-function attachWelfareMediaRefs(careerContent) {
+function resolveApplicationFormMedia(cta = {}) {
+  const media = cta.applicationFormMedia
+
+  if (media?.pendingFile || media?.previewUrl) {
+    return media
+  }
+
+  if (media?.url || media?.r2Key) {
+    return media
+  }
+
+  return mediaRefFromUrl(cta.applicationFormUrl, cta.applicationFormR2Key || '')
+}
+
+function attachCareerMediaRefs(careerContent) {
+  const rawCta = careerContent.cta || {}
+  const normalizedCta = normalizeCareerCta(rawCta)
+  const applicationFormMedia =
+    rawCta.applicationFormMedia?.pendingFile || rawCta.applicationFormMedia?.previewUrl
+      ? rawCta.applicationFormMedia
+      : resolveApplicationFormMedia(normalizedCta)
+
   return {
     ...careerContent,
     work: normalizeWorkList(careerContent.work),
@@ -151,14 +178,20 @@ function attachWelfareMediaRefs(careerContent) {
       ...item,
       iconMedia: resolveWelfareIconMedia(item),
     })),
+    cta: {
+      ...normalizedCta,
+      applicationFormMedia,
+    },
   }
 }
 
-function stripWelfareMediaRefs(careerContent) {
+function stripCareerMediaRefs(careerContent) {
+  const { applicationFormMedia, ...ctaWithoutMedia } = careerContent.cta || {}
+
   return {
     ...careerContent,
     welfare: (careerContent.welfare || []).map(({ iconMedia, ...item }) => item),
-    cta: normalizeCareerCta(careerContent.cta),
+    cta: normalizeCareerCta(ctaWithoutMedia),
   }
 }
 
@@ -325,8 +358,9 @@ function SortableWelfareRow({ item, index, onEdit, onDelete }) {
 }
 
 export default function CareerManager() {
-  const [content, setContent] = useState(() => attachWelfareMediaRefs(cloneDefaultContent()))
+  const [content, setContent] = useState(() => attachCareerMediaRefs(cloneDefaultContent()))
   const [savedWelfareIcons, setSavedWelfareIcons] = useState([])
+  const [savedApplicationFormUrl, setSavedApplicationFormUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -352,9 +386,10 @@ export default function CareerManager() {
       try {
         setLoading(true)
         const data = await pageContentService.getPageContent('career')
-        const merged = attachWelfareMediaRefs(mergeContent(data?.content))
+        const merged = attachCareerMediaRefs(mergeContent(data?.content))
         setContent(merged)
         setSavedWelfareIcons(merged.welfare.map((item) => item.icon || ''))
+        setSavedApplicationFormUrl(merged.cta.applicationFormUrl || '')
       } catch (error) {
         window.alert(`CAREER 데이터 로딩에 실패했습니다: ${error.message}`)
       } finally {
@@ -366,7 +401,7 @@ export default function CareerManager() {
   }, [])
 
   const updateContent = (updater) => {
-    setContent((currentContent) => attachWelfareMediaRefs(mergeContent(updater(currentContent))))
+    setContent((currentContent) => attachCareerMediaRefs(mergeContent(updater(currentContent))))
   }
 
   const openAddWorkModal = () => {
@@ -688,6 +723,33 @@ export default function CareerManager() {
         }
       }
 
+      const pendingApplicationFormName = content.cta.applicationFormMedia?.pendingFile?.name || ''
+
+      const resolvedApplicationForm = await resolveMediaRef(
+        content.cta.applicationFormMedia || mediaRefFromUrl(content.cta.applicationFormUrl),
+        {
+          metadata: { folder: 'career/application-forms', source: 'career-application-form' },
+          validateFile: (file) => imageService.validateDocumentFile(file),
+        },
+      )
+
+      const applicationFormFileName =
+        pendingApplicationFormName ||
+        resolvedApplicationForm.fileName ||
+        content.cta.applicationFormFileName ||
+        getCareerApplicationFormDownloadName({
+          applicationFormUrl: resolvedApplicationForm.url || content.cta.applicationFormUrl,
+          applicationFormFileName: content.cta.applicationFormFileName,
+        })
+
+      if (
+        savedApplicationFormUrl &&
+        savedApplicationFormUrl !== resolvedApplicationForm.url &&
+        savedApplicationFormUrl.includes('/files/')
+      ) {
+        await deleteMediaAsset({ url: savedApplicationFormUrl })
+      }
+
       const nextContent = {
         ...content,
         welfare: content.welfare.map((item, index) => {
@@ -699,13 +761,21 @@ export default function CareerManager() {
             iconMedia: undefined,
           }
         }),
+        cta: {
+          ...content.cta,
+          applicationFormUrl: resolvedApplicationForm.url || content.cta.applicationFormUrl || '',
+          applicationFormR2Key: resolvedApplicationForm.r2Key || '',
+          applicationFormFileName,
+          applicationFormMedia: undefined,
+        },
       }
 
-      const payload = stripWelfareMediaRefs(nextContent)
+      const payload = stripCareerMediaRefs(nextContent)
 
       await pageContentService.savePageContent('career', { content: payload })
-      setContent(attachWelfareMediaRefs(payload))
+      setContent(attachCareerMediaRefs(payload))
       setSavedWelfareIcons(payload.welfare.map((item) => item.icon || ''))
+      setSavedApplicationFormUrl(payload.cta.applicationFormUrl || '')
       window.alert('CAREER 콘텐츠가 저장되었습니다.')
     } catch (error) {
       window.alert(`CAREER 저장에 실패했습니다: ${error.message}`)
@@ -942,6 +1012,122 @@ export default function CareerManager() {
                     value={formatCareerNotesForEditor(content.cta.notes)}
                     onChange={(event) => updateNotes(event.target.value)}
                   />
+                </div>
+
+                <div className="admin-form-row" style={{ marginTop: '28px' }}>
+                  <label htmlFor="career-cta-contact-email">지원 이메일 (복사하기 버튼)</label>
+                  <input
+                    id="career-cta-contact-email"
+                    className="admin-input"
+                    type="email"
+                    value={content.cta.contactEmail}
+                    onChange={(event) =>
+                      updateContent((currentContent) => ({
+                        ...currentContent,
+                        cta: {
+                          ...currentContent.cta,
+                          contactEmail: event.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="admin-upload-section" style={{ marginTop: '28px' }}>
+                  <h4>지원양식 파일</h4>
+                  <small>PDF, DOC, DOCX (최대 10MB). 저장 시 R2에 업로드됩니다.</small>
+                  {(() => {
+                    const pendingFile = content.cta.applicationFormMedia?.pendingFile
+                    const pendingPreviewUrl = getMediaDisplayUrl(content.cta.applicationFormMedia)
+                    const savedUrl = content.cta.applicationFormUrl
+                    const savedFileName = getCareerApplicationFormDownloadName(content.cta)
+                    const hasSavedFile = Boolean(savedUrl) && !pendingFile
+
+                    return (
+                      <div className="admin-career-form-files">
+                        {hasSavedFile && (
+                          <div className="admin-career-form-file-row">
+                            <span className="admin-career-form-file-label">현재 파일</span>
+                            <a
+                              className="admin-career-form-file-name"
+                              href={savedUrl}
+                              download={savedFileName}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {savedFileName}
+                            </a>
+                          </div>
+                        )}
+                        {pendingFile && (
+                          <div className="admin-career-form-file-row">
+                            <span className="admin-career-form-file-label">현재 파일</span>
+                            <a
+                              className="admin-career-form-file-name"
+                              href={pendingPreviewUrl}
+                              download={pendingFile.name}
+                            >
+                              {pendingFile.name}
+                            </a>
+                          </div>
+                        )}
+                        {!hasSavedFile && !pendingFile && (
+                          <p className="admin-empty-message">현재 파일이 없습니다.</p>
+                        )}
+                      </div>
+                    )
+                  })()}
+                  <ImageUploader
+                    deferUpload
+                    maxFiles={1}
+                    showPreview={false}
+                    acceptedTypes="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,.doc,.docx"
+                    hintText="PDF, DOC, DOCX 지원 (최대 10MB)"
+                    placeholderTitle="지원양식 파일 업로드"
+                    validateFile={(file) => imageService.validateDocumentFile(file)}
+                    onFilesSelected={({ previews }) => {
+                      const file = previews[0]?.file
+
+                      if (!file) {
+                        return
+                      }
+
+                      revokeMediaPreview(content.cta.applicationFormMedia)
+                      updateContent((currentContent) => ({
+                        ...currentContent,
+                        cta: {
+                          ...currentContent.cta,
+                          applicationFormMedia: mediaRefFromPendingFile(file),
+                        },
+                      }))
+                    }}
+                  />
+                  {(content.cta.applicationFormMedia?.pendingFile ||
+                    content.cta.applicationFormUrl) && (
+                    <div className="admin-form-actions" style={{ marginTop: '12px' }}>
+                      <button
+                        className="admin-button admin-button-secondary"
+                        type="button"
+                        onClick={() => {
+                          revokeMediaPreview(content.cta.applicationFormMedia)
+                          updateContent((currentContent) => ({
+                            ...currentContent,
+                            cta: {
+                              ...currentContent.cta,
+                              applicationFormUrl: '',
+                              applicationFormR2Key: '',
+                              applicationFormFileName: '',
+                              applicationFormMedia: createEmptyMediaRef(),
+                            },
+                          }))
+                        }}
+                      >
+                        {content.cta.applicationFormMedia?.pendingFile
+                          ? '업로드 취소'
+                          : '파일 제거'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </section>
               </div>
