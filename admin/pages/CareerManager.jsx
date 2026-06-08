@@ -424,28 +424,36 @@ export default function CareerManager() {
     setWorkDraft(null)
   }
 
-  const applyWorkDraft = () => {
+  const applyWorkDraft = async () => {
     if (!workDraft) {
       return
     }
 
-    updateContent((currentContent) => {
-      if (isCreatingWork) {
-        return {
-          ...currentContent,
-          work: [...currentContent.work, workDraft],
-        }
-      }
+    const nextContent = attachCareerMediaRefs(
+      mergeContent(
+        isCreatingWork
+          ? {
+              ...content,
+              work: [...content.work, workDraft],
+            }
+          : {
+              ...content,
+              work: content.work.map((item, itemIndex) =>
+                itemIndex === editingWorkIndex ? workDraft : item,
+              ),
+            },
+      ),
+    )
 
-      return {
-        ...currentContent,
-        work: currentContent.work.map((item, itemIndex) =>
-          itemIndex === editingWorkIndex ? workDraft : item,
-        ),
-      }
-    })
-
-    closeWorkModal()
+    try {
+      setSaving(true)
+      await persistCareerContent(nextContent)
+      closeWorkModal()
+    } catch (error) {
+      window.alert(`How We Work 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const deleteWork = (index) => {
@@ -509,25 +517,23 @@ export default function CareerManager() {
     setWelfareDraft(null)
   }
 
-  const removeWelfareDraftIcon = async () => {
+  const removeWelfareDraftIcon = () => {
     if (!welfareDraft) {
       return
     }
 
-    const media = welfareDraft.iconMedia
+    setWelfareDraft((currentDraft) => {
+      revokeMediaPreview(currentDraft.iconMedia)
 
-    if (media?.url || media?.r2Key) {
-      await deleteMediaAsset(media)
-    }
-
-    setWelfareDraft((currentDraft) => ({
-      ...currentDraft,
-      icon: '',
-      iconMedia: resetMediaRef(currentDraft.iconMedia),
-    }))
+      return {
+        ...currentDraft,
+        icon: '',
+        iconMedia: resetMediaRef(currentDraft.iconMedia),
+      }
+    })
   }
 
-  const applyWelfareDraft = () => {
+  const applyWelfareDraft = async () => {
     if (!welfareDraft) {
       return
     }
@@ -542,23 +548,31 @@ export default function CareerManager() {
         : mediaRefFromUrl(welfareDraft.icon),
     }
 
-    updateContent((currentContent) => {
-      if (isCreatingWelfare) {
-        return {
-          ...currentContent,
-          welfare: [...currentContent.welfare, welfareToApply],
-        }
-      }
+    const nextContent = attachCareerMediaRefs(
+      mergeContent(
+        isCreatingWelfare
+          ? {
+              ...content,
+              welfare: [...content.welfare, welfareToApply],
+            }
+          : {
+              ...content,
+              welfare: content.welfare.map((item, itemIndex) =>
+                itemIndex === editingWelfareIndex ? welfareToApply : item,
+              ),
+            },
+      ),
+    )
 
-      return {
-        ...currentContent,
-        welfare: currentContent.welfare.map((item, itemIndex) =>
-          itemIndex === editingWelfareIndex ? welfareToApply : item,
-        ),
-      }
-    })
-
-    closeWelfareModal({ revokeDraftPreview: false })
+    try {
+      setSaving(true)
+      await persistCareerContent(nextContent)
+      closeWelfareModal({ revokeDraftPreview: false })
+    } catch (error) {
+      window.alert(`복리후생 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const deleteWelfare = async (index) => {
@@ -619,36 +633,43 @@ export default function CareerManager() {
     setOpeningDraft(null)
   }
 
-  const applyOpeningDraft = () => {
+  const applyOpeningDraft = async () => {
     if (!openingDraft) {
       return
     }
 
-    updateContent((currentContent) => {
-      const openings = normalizeCareerCtaOpenings(currentContent.cta.openings, currentContent.cta.teams)
+    const openings = normalizeCareerCtaOpenings(content.cta.openings, content.cta.teams)
+    const nextContent = attachCareerMediaRefs(
+      mergeContent(
+        isCreatingOpening
+          ? {
+              ...content,
+              cta: {
+                ...content.cta,
+                openings: [...openings, openingDraft],
+              },
+            }
+          : {
+              ...content,
+              cta: {
+                ...content.cta,
+                openings: openings.map((item, itemIndex) =>
+                  itemIndex === editingOpeningIndex ? openingDraft : item,
+                ),
+              },
+            },
+      ),
+    )
 
-      if (isCreatingOpening) {
-        return {
-          ...currentContent,
-          cta: {
-            ...currentContent.cta,
-            openings: [...openings, openingDraft],
-          },
-        }
-      }
-
-      return {
-        ...currentContent,
-        cta: {
-          ...currentContent.cta,
-          openings: openings.map((item, itemIndex) =>
-            itemIndex === editingOpeningIndex ? openingDraft : item,
-          ),
-        },
-      }
-    })
-
-    closeOpeningModal()
+    try {
+      setSaving(true)
+      await persistCareerContent(nextContent)
+      closeOpeningModal()
+    } catch (error) {
+      window.alert(`채용 포지션 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const deleteOpening = (index) => {
@@ -703,79 +724,82 @@ export default function CareerManager() {
     }))
   }
 
+  const persistCareerContent = async (sourceContent) => {
+    const resolvedWelfare = await Promise.all(
+      sourceContent.welfare.map((item, index) =>
+        resolveMediaRef(item.iconMedia || mediaRefFromUrl(item.icon), {
+          metadata: { folder: 'career/welfare', source: 'career-welfare-icon' },
+        }).then((iconMedia) => ({ index, iconMedia })),
+      ),
+    )
+
+    for (const { index, iconMedia } of resolvedWelfare) {
+      const previousIcon = savedWelfareIcons[index] || ''
+
+      if (previousIcon && previousIcon !== iconMedia.url) {
+        await deleteMediaAsset({ url: previousIcon })
+      }
+    }
+
+    const pendingApplicationFormName = sourceContent.cta.applicationFormMedia?.pendingFile?.name || ''
+
+    const resolvedApplicationForm = await resolveMediaRef(
+      sourceContent.cta.applicationFormMedia || mediaRefFromUrl(sourceContent.cta.applicationFormUrl),
+      {
+        metadata: { folder: 'career/application-forms', source: 'career-application-form' },
+        validateFile: (file) => imageService.validateDocumentFile(file),
+      },
+    )
+
+    const applicationFormFileName =
+      pendingApplicationFormName ||
+      resolvedApplicationForm.fileName ||
+      sourceContent.cta.applicationFormFileName ||
+      getCareerApplicationFormDownloadName({
+        applicationFormUrl: resolvedApplicationForm.url || sourceContent.cta.applicationFormUrl,
+        applicationFormFileName: sourceContent.cta.applicationFormFileName,
+      })
+
+    if (
+      savedApplicationFormUrl &&
+      savedApplicationFormUrl !== resolvedApplicationForm.url &&
+      savedApplicationFormUrl.includes('/files/')
+    ) {
+      await deleteMediaAsset({ url: savedApplicationFormUrl })
+    }
+
+    const nextContent = {
+      ...sourceContent,
+      welfare: sourceContent.welfare.map((item, index) => {
+        const resolved = resolvedWelfare.find((entry) => entry.index === index)?.iconMedia
+
+        return {
+          ...item,
+          icon: resolved?.url || '',
+          iconMedia: undefined,
+        }
+      }),
+      cta: {
+        ...sourceContent.cta,
+        applicationFormUrl: resolvedApplicationForm.url || sourceContent.cta.applicationFormUrl || '',
+        applicationFormR2Key: resolvedApplicationForm.r2Key || '',
+        applicationFormFileName,
+        applicationFormMedia: undefined,
+      },
+    }
+
+    const payload = stripCareerMediaRefs(nextContent)
+
+    await pageContentService.savePageContent('career', { content: payload })
+    setContent(attachCareerMediaRefs(payload))
+    setSavedWelfareIcons(payload.welfare.map((item) => item.icon || ''))
+    setSavedApplicationFormUrl(payload.cta.applicationFormUrl || '')
+  }
+
   const saveContent = async () => {
     try {
       setSaving(true)
-
-      const resolvedWelfare = await Promise.all(
-        content.welfare.map((item, index) =>
-          resolveMediaRef(item.iconMedia || mediaRefFromUrl(item.icon), {
-            metadata: { folder: 'career/welfare', source: 'career-welfare-icon' },
-          }).then((iconMedia) => ({ index, iconMedia })),
-        ),
-      )
-
-      for (const { index, iconMedia } of resolvedWelfare) {
-        const previousIcon = savedWelfareIcons[index] || ''
-
-        if (previousIcon && previousIcon !== iconMedia.url) {
-          await deleteMediaAsset({ url: previousIcon })
-        }
-      }
-
-      const pendingApplicationFormName = content.cta.applicationFormMedia?.pendingFile?.name || ''
-
-      const resolvedApplicationForm = await resolveMediaRef(
-        content.cta.applicationFormMedia || mediaRefFromUrl(content.cta.applicationFormUrl),
-        {
-          metadata: { folder: 'career/application-forms', source: 'career-application-form' },
-          validateFile: (file) => imageService.validateDocumentFile(file),
-        },
-      )
-
-      const applicationFormFileName =
-        pendingApplicationFormName ||
-        resolvedApplicationForm.fileName ||
-        content.cta.applicationFormFileName ||
-        getCareerApplicationFormDownloadName({
-          applicationFormUrl: resolvedApplicationForm.url || content.cta.applicationFormUrl,
-          applicationFormFileName: content.cta.applicationFormFileName,
-        })
-
-      if (
-        savedApplicationFormUrl &&
-        savedApplicationFormUrl !== resolvedApplicationForm.url &&
-        savedApplicationFormUrl.includes('/files/')
-      ) {
-        await deleteMediaAsset({ url: savedApplicationFormUrl })
-      }
-
-      const nextContent = {
-        ...content,
-        welfare: content.welfare.map((item, index) => {
-          const resolved = resolvedWelfare.find((entry) => entry.index === index)?.iconMedia
-
-          return {
-            ...item,
-            icon: resolved?.url || '',
-            iconMedia: undefined,
-          }
-        }),
-        cta: {
-          ...content.cta,
-          applicationFormUrl: resolvedApplicationForm.url || content.cta.applicationFormUrl || '',
-          applicationFormR2Key: resolvedApplicationForm.r2Key || '',
-          applicationFormFileName,
-          applicationFormMedia: undefined,
-        },
-      }
-
-      const payload = stripCareerMediaRefs(nextContent)
-
-      await pageContentService.savePageContent('career', { content: payload })
-      setContent(attachCareerMediaRefs(payload))
-      setSavedWelfareIcons(payload.welfare.map((item) => item.icon || ''))
-      setSavedApplicationFormUrl(payload.cta.applicationFormUrl || '')
+      await persistCareerContent(content)
       window.alert('CAREER 콘텐츠가 저장되었습니다.')
     } catch (error) {
       window.alert(`CAREER 저장에 실패했습니다: ${error.message}`)

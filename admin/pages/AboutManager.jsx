@@ -372,20 +372,18 @@ export default function AboutManager() {
     }
   }
 
-  const removeServiceVideo = async () => {
-    const media = serviceDraft?.videoMedia
+  const removeServiceVideo = () => {
+    updateServiceDraft((currentDraft) => {
+      revokeMediaPreview(currentDraft.videoMedia)
 
-    if (media?.url || media?.r2Key) {
-      await deleteMediaAsset(media)
-    }
-
-    updateServiceDraft((currentDraft) => ({
-      ...currentDraft,
-      video: '',
-      videoFileName: undefined,
-      videoR2Key: undefined,
-      videoMedia: resetMediaRef(currentDraft.videoMedia),
-    }))
+      return {
+        ...currentDraft,
+        video: '',
+        videoFileName: undefined,
+        videoR2Key: undefined,
+        videoMedia: resetMediaRef(currentDraft.videoMedia),
+      }
+    })
   }
 
   const saveServiceDraft = async () => {
@@ -413,18 +411,28 @@ export default function AboutManager() {
 
       delete draftToSave.videoMedia
 
-      if (isCreatingService) {
-        updateContent((currentContent) => ({
-          ...currentContent,
-          services: syncServiceNumbers([...currentContent.services, draftToSave]),
-        }))
-      } else {
-        updateService(editingServiceIndex, draftToSave)
-      }
+      const nextContent = mergeContent(
+        isCreatingService
+          ? {
+              ...content,
+              services: syncServiceNumbers([...content.services, draftToSave]),
+            }
+          : {
+              ...content,
+              services: content.services.map((item, itemIndex) =>
+                itemIndex === editingServiceIndex ? draftToSave : item,
+              ),
+            },
+      )
 
+      setSaving(true)
+      setContent(nextContent)
+      await persistContent(nextContent)
       closeServiceModal()
     } catch (error) {
       window.alert(`Service 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -471,32 +479,28 @@ export default function AboutManager() {
     setCoreValueDraft((currentDraft) => updater(currentDraft))
   }
 
-  const removeCoreValueImage = async () => {
-    const media = coreValueDraft?.imageMedia
+  const removeCoreValueImage = () => {
+    updateCoreValueDraft((currentDraft) => {
+      revokeMediaPreview(currentDraft.imageMedia)
 
-    if (media?.url || media?.r2Key) {
-      await deleteMediaAsset(media)
-    }
-
-    updateCoreValueDraft((currentDraft) => ({
-      ...currentDraft,
-      image: '',
-      imageMedia: resetMediaRef(currentDraft.imageMedia),
-    }))
+      return {
+        ...currentDraft,
+        image: '',
+        imageMedia: resetMediaRef(currentDraft.imageMedia),
+      }
+    })
   }
 
-  const removeCoreValueHoverImage = async () => {
-    const media = coreValueDraft?.hoverImageMedia
+  const removeCoreValueHoverImage = () => {
+    updateCoreValueDraft((currentDraft) => {
+      revokeMediaPreview(currentDraft.hoverImageMedia)
 
-    if (media?.url || media?.r2Key) {
-      await deleteMediaAsset(media)
-    }
-
-    updateCoreValueDraft((currentDraft) => ({
-      ...currentDraft,
-      hoverImage: '',
-      hoverImageMedia: resetMediaRef(currentDraft.hoverImageMedia),
-    }))
+      return {
+        ...currentDraft,
+        hoverImage: '',
+        hoverImageMedia: resetMediaRef(currentDraft.hoverImageMedia),
+      }
+    })
   }
 
   const saveCoreValueDraft = async () => {
@@ -533,10 +537,21 @@ export default function AboutManager() {
       delete draftToSave.imageMedia
       delete draftToSave.hoverImageMedia
 
-      updateCoreValue(editingCoreIndex, draftToSave)
+      const nextContent = mergeContent({
+        ...content,
+        coreValues: content.coreValues.map((item, itemIndex) =>
+          itemIndex === editingCoreIndex ? draftToSave : item,
+        ),
+      })
+
+      setSaving(true)
+      setContent(nextContent)
+      await persistContent(nextContent)
       closeCoreValueModal()
     } catch (error) {
       window.alert(`Core Value 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -561,12 +576,32 @@ export default function AboutManager() {
     setOrgDraft((currentDraft) => updater(currentDraft))
   }
 
-  const saveOrganizationDraft = () => {
-    updateOrganizationItem(editingOrgIndex, {
-      ...orgDraft,
-      teams: parseList(orgTeamsInput),
-    })
-    closeOrganizationModal()
+  const saveOrganizationDraft = async () => {
+    try {
+      const nextContent = mergeContent({
+        ...content,
+        organization: {
+          ...content.organization,
+          items: content.organization.items.map((item, itemIndex) =>
+            itemIndex === editingOrgIndex
+              ? {
+                  ...orgDraft,
+                  teams: parseList(orgTeamsInput),
+                }
+              : item,
+          ),
+        },
+      })
+
+      setSaving(true)
+      setContent(nextContent)
+      await persistContent(nextContent)
+      closeOrganizationModal()
+    } catch (error) {
+      window.alert(`Organization 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const createEmptyMember = () => {
@@ -611,20 +646,18 @@ export default function AboutManager() {
     setMemberDraft((currentDraft) => updater(currentDraft))
   }
 
-  const removeMemberImage = async () => {
-    const media = memberDraft?.imageMedia
+  const removeMemberImage = () => {
+    updateMemberDraft((currentDraft) => {
+      revokeMediaPreview(currentDraft.imageMedia)
 
-    if (media?.url || media?.r2Key) {
-      await deleteMediaAsset(media)
-    }
-
-    updateMemberDraft((currentDraft) => ({
-      ...currentDraft,
-      image: '',
-      imageFileName: undefined,
-      imageR2Key: undefined,
-      imageMedia: resetMediaRef(currentDraft.imageMedia),
-    }))
+      return {
+        ...currentDraft,
+        image: '',
+        imageFileName: undefined,
+        imageR2Key: undefined,
+        imageMedia: resetMediaRef(currentDraft.imageMedia),
+      }
+    })
   }
 
   const saveMemberDraft = async () => {
@@ -650,18 +683,28 @@ export default function AboutManager() {
 
       delete draftToSave.imageMedia
 
-      if (isCreatingMember) {
-        updateContent((currentContent) => ({
-          ...currentContent,
-          members: syncMemberIds([...currentContent.members, draftToSave]),
-        }))
-      } else {
-        updateMember(editingMemberIndex, draftToSave)
-      }
+      const nextContent = mergeContent(
+        isCreatingMember
+          ? {
+              ...content,
+              members: syncMemberIds([...content.members, draftToSave]),
+            }
+          : {
+              ...content,
+              members: content.members.map((item, itemIndex) =>
+                itemIndex === editingMemberIndex ? draftToSave : item,
+              ),
+            },
+      )
 
+      setSaving(true)
+      setContent(nextContent)
+      await persistContent(nextContent)
       closeMemberModal()
     } catch (error) {
       window.alert(`멤버 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -688,12 +731,16 @@ export default function AboutManager() {
     return title.split('\n')[0]?.trim() || item.id || '제목 없음'
   }
 
+  const persistContent = async (nextContent) => {
+    await pageContentService.savePageContent('about', {
+      content: serializeAboutContentForFirestore(nextContent),
+    })
+  }
+
   const saveContent = async () => {
     try {
       setSaving(true)
-      await pageContentService.savePageContent('about', {
-        content: serializeAboutContentForFirestore(content),
-      })
+      await persistContent(content)
       window.alert('ABOUT 콘텐츠가 저장되었습니다.')
     } catch (error) {
       window.alert(`ABOUT 저장에 실패했습니다: ${error.message}`)
@@ -1259,6 +1306,7 @@ export default function AboutManager() {
 
             <div className="admin-form-row admin-service-video-field">
               <label>동영상</label>
+              <small>1920*1200px(16:10 비율) 권장</small>
               <ImageUploader
                 deferUpload
                 maxFiles={1}

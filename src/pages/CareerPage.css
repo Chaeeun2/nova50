@@ -168,7 +168,7 @@
   border: 1px solid var(--career-point);
   border-radius: 5px;
   color: var(--career-point);
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -427,7 +427,7 @@
   }
 
   .career-work-tags span {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .career-work-card {
@@ -581,7 +581,7 @@
   }
 
   .career-work-tags span {
-    font-size: 15px;
+    font-size: 14px;
     padding: 6px 8px;
   }
 

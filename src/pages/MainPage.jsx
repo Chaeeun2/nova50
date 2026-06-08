@@ -380,13 +380,14 @@ function MainPage() {
       >
         {mainPageText.section03.cards.map((card, index) => {
           const cardImages = getCardImageSources(card, index)
+          const cardStyle = card.style || (index === 0 ? 'works' : 'about')
 
           return (
           <a
-            className={`feature-card ${index === 0 ? 'feature-card-wide' : ''}`}
+            className={`feature-card feature-card--${cardStyle}`}
             data-reveal-item
-            href={card.path || (getResponsiveText(card.title, 'pc') === 'about' ? '/about' : '/works')}
-            key={getResponsiveText(card.title, 'pc')}
+            href={card.path || (cardStyle === 'about' ? '/about' : '/works')}
+            key={`${cardStyle}-${getResponsiveText(card.title, 'pc')}-${index}`}
             style={revealDelay(index)}
           >
             <picture>

@@ -222,6 +222,14 @@
     box-shadow 0.3s ease;
 }
 
+.feature-card--works {
+  min-height: 400px;
+}
+
+.feature-card--about {
+  min-height: 400px;
+}
+
 .card-section.is-page-bottom-active .feature-card {
   border-color: rgba(255, 255, 255, 0.18);
 }
@@ -241,41 +249,70 @@
     transform 0.3s ease;
 }
 
-.feature-card::before {
+.feature-card--works::before,
+.feature-card--about::before {
   position: absolute;
   z-index: 1;
   inset: 0;
   content: "";
-  background: rgba(0, 0, 0, 0.03);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
-.feature-card::after {
+.feature-card--works::before {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.feature-card--about::before {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.feature-card--works::after,
+.feature-card--about::after {
   position: absolute;
   z-index: 2;
   inset: 0;
   content: "";
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(6px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
-.feature-card:is(:hover, :active, :focus-visible) picture,
-.feature-card:is(:hover, :active, :focus-visible) img {
-  opacity: 1;
-  transform: scale(1.03);
+.feature-card--works::after {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
 }
 
-.feature-card:is(:hover, :active, :focus-visible) {
+.feature-card--about::after {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(22px);
+}
+
+.feature-card--works:is(:hover, :active, :focus-visible) picture,
+.feature-card--works:is(:hover, :active, :focus-visible) img {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.feature-card--about:is(:hover, :active, :focus-visible) picture,
+.feature-card--about:is(:hover, :active, :focus-visible) img {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.feature-card--works:is(:hover, :active, :focus-visible) {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-.feature-card:is(:hover, :active, :focus-visible)::before,
-.feature-card:is(:hover, :active, :focus-visible)::after {
+.feature-card--about:is(:hover, :active, :focus-visible) {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.feature-card--works:is(:hover, :active, :focus-visible)::before,
+.feature-card--works:is(:hover, :active, :focus-visible)::after,
+.feature-card--about:is(:hover, :active, :focus-visible)::before,
+.feature-card--about:is(:hover, :active, :focus-visible)::after {
   opacity: 1;
 }
 
@@ -324,7 +361,13 @@
     box-shadow 0.3s ease;
 }
 
-.feature-card:is(:hover, :active, :focus-visible) .card-arrow {
+.feature-card--works:is(:hover, :active, :focus-visible) .card-arrow {
+  background: var(--color-black);
+  color: var(--color-point);
+  border: 1.5px solid black;
+}
+
+.feature-card--about:is(:hover, :active, :focus-visible) .card-arrow {
   background: var(--color-black);
   color: var(--color-point);
   border: 1.5px solid black;
@@ -333,6 +376,22 @@
 .card-arrow-icon {
   width: 30px;
   height: 30px;
+}
+
+@media (min-width: 1401px) {
+  .card-section {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .feature-card--works {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .feature-card--about {
+    grid-column: 2;
+    grid-row: 1;
+  }
 }
 
 .partners-section {
@@ -601,6 +660,13 @@
     border: 1px solid #ededed;
   }
 
+  .feature-card--works,
+  .feature-card--about {
+    min-height: 200px;
+    grid-column: auto;
+    grid-row: auto;
+  }
+
   .card-content {
     gap: 16px;
     padding: 25px;
@@ -657,12 +723,17 @@
   .partner-carousel--dual {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 12px;
   }
 
   .partner-carousel--dual .partner-track {
     --partner-gap: 40px;
     --partner-loop-offset: 10px;
+    --partner-logo-width: 88px;
+  }
+
+  .partner-carousel--dual .partner-track:not(:first-child) {
+    margin-left: calc((var(--partner-logo-width) + var(--partner-gap)) / 2);
   }
 
   .partner-carousel--dual .partner-logo {

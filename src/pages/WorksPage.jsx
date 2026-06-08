@@ -28,6 +28,32 @@ const getEnglishTitle = (title) => {
   return ''
 }
 
+const hasDisplayText = (value) => typeof value === 'string' && value.trim().length > 0
+
+function ProjectModalArrowIcon({ direction }) {
+  return (
+    <svg width="40" height="40" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      {direction === 'prev' ? (
+        <path
+          d="M17 7L11 14L17 21"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ) : (
+        <path
+          d="M11 7L17 14L11 21"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
+  )
+}
+
 function WorksPage() {
   const [projects, setProjects] = useState([])
   const [filterTags, setFilterTags] = useState(() => buildWorksFilterTagsForUi())
@@ -261,11 +287,13 @@ function WorksPage() {
             </button>
             <p>{project.koreanTitle}</p>
             <h2 className="work-card-title">{getEnglishTitle(project.englishTitle)}</h2>
-            <div className="work-card-tags">
-              {(project.cardTags?.length ? project.cardTags : project.tags || []).map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
-            </div>
+            {(project.cardTags || []).length > 0 && (
+              <div className="work-card-tags">
+                {project.cardTags.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+            )}
           </article>
         ))}
       </section>
@@ -311,22 +339,48 @@ function WorksPage() {
                 ))}
               </div>
               {selectedProject.detailImages.length > 1 && (
-                <div
-                  className="project-modal-dots"
-                  aria-label="Project image slides"
-                  onPointerDown={(event) => event.stopPropagation()}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  {selectedProject.detailImages.map((image, index) => (
-                    <button
-                      className={activeDetailImageIndex === index ? 'is-active' : undefined}
-                      type="button"
-                      key={image}
-                      aria-label={`Show image ${index + 1}`}
-                      onClick={() => setActiveDetailImageIndex(index)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <button
+                    className="project-modal-arrow project-modal-arrow--prev"
+                    type="button"
+                    aria-label="Previous image"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      moveDetailSlide(-1)
+                    }}
+                  >
+                    <ProjectModalArrowIcon direction="prev" />
+                  </button>
+                  <button
+                    className="project-modal-arrow project-modal-arrow--next"
+                    type="button"
+                    aria-label="Next image"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      moveDetailSlide(1)
+                    }}
+                  >
+                    <ProjectModalArrowIcon direction="next" />
+                  </button>
+                  <div
+                    className="project-modal-dots"
+                    aria-label="Project image slides"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {selectedProject.detailImages.map((image, index) => (
+                      <button
+                        className={activeDetailImageIndex === index ? 'is-active' : undefined}
+                        type="button"
+                        key={image}
+                        aria-label={`Show image ${index + 1}`}
+                        onClick={() => setActiveDetailImageIndex(index)}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
             <div className="project-modal-content">
@@ -335,23 +389,31 @@ function WorksPage() {
                 <h2 id="project-modal-title">{getEnglishTitle(selectedProject.englishTitle)}</h2>
               </div>
               <dl className="project-modal-info">
-                <div>
-                  <dt>DATE</dt>
-                  <dd>{selectedProject.date}</dd>
-                </div>
-                <div>
-                  <dt>CLIENT</dt>
-                  <dd>{selectedProject.client}</dd>
-                </div>
-                <div>
-                  <dt>LOCATION</dt>
-                  <dd>{selectedProject.location}</dd>
-                </div>
+                {hasDisplayText(selectedProject.date) && (
+                  <div>
+                    <dt>DATE</dt>
+                    <dd>{selectedProject.date}</dd>
+                  </div>
+                )}
+                {hasDisplayText(selectedProject.client) && (
+                  <div>
+                    <dt>CLIENT</dt>
+                    <dd>{selectedProject.client}</dd>
+                  </div>
+                )}
+                {hasDisplayText(selectedProject.location) && (
+                  <div>
+                    <dt>LOCATION</dt>
+                    <dd>{selectedProject.location}</dd>
+                  </div>
+                )}
               </dl>
-              <div className="project-modal-description">
-                <h3>WHAT WE DID</h3>
-                <p>{selectedProject.whatWeDid}</p>
-              </div>
+              {hasDisplayText(selectedProject.whatWeDid) && (
+                <div className="project-modal-description">
+                  <h3>WHAT WE DID</h3>
+                  <p>{selectedProject.whatWeDid}</p>
+                </div>
+              )}
               <div className="project-modal-tags">
                 {selectedProject.tags.map((tag) => (
                   <span key={tag}>{tag}</span>

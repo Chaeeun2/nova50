@@ -30,6 +30,7 @@ import WorksTagCheckboxGroup from '../components/WorksTagCheckboxGroup'
 import { pageContentService, worksService } from '../services/dataService'
 import {
   collectWorkMediaUrls,
+  createEmptyMediaRef,
   deleteMediaAsset,
   deleteMediaAssets,
   mediaRefFromPendingFile,
@@ -144,6 +145,32 @@ function revokeWorkDraftMedia(draft) {
 
   revokeMediaPreview(draft.thumbnailMedia)
   revokeMediaPreviews(draft.detailImagesMedia)
+}
+
+function getWorkDraftValidationErrors(draft) {
+  const errors = []
+
+  if (!draft?.koreanTitle?.trim()) {
+    errors.push('국문 제목')
+  }
+
+  if (!draft?.englishTitle?.trim()) {
+    errors.push('영문 제목')
+  }
+
+  if (!draft?.tags?.length) {
+    errors.push('전체 태그')
+  }
+
+  if (!getMediaDisplayUrl(draft?.thumbnailMedia)) {
+    errors.push('썸네일')
+  }
+
+  if (!draft?.detailImagesMedia?.length) {
+    errors.push('상세 이미지')
+  }
+
+  return errors
 }
 
 function getWorkEnglishSubtitle(work) {
@@ -407,15 +434,11 @@ export default function WorksManager() {
     })
   }
 
-  const removeDetailImageMedia = async (mediaId) => {
+  const removeDetailImageMedia = (mediaId) => {
     const media = workDraft?.detailImagesMedia?.find((item) => item.id === mediaId)
 
     if (!media) {
       return
-    }
-
-    if (media.url || media.r2Key) {
-      await deleteMediaAsset(media)
     }
 
     updateWorkDraft((currentDraft) => {
@@ -453,8 +476,10 @@ export default function WorksManager() {
   }
 
   const saveWorkDraft = async () => {
-    if (!workDraft?.koreanTitle?.trim()) {
-      window.alert('국문 제목을 입력해 주세요.')
+    const validationErrors = getWorkDraftValidationErrors(workDraft)
+
+    if (validationErrors.length > 0) {
+      window.alert(`다음 필수 항목을 입력해 주세요.\n\n${validationErrors.join('\n')}`)
       return
     }
 
@@ -636,7 +661,12 @@ export default function WorksManager() {
         size="wide"
         footer={
           <>
-            <button className="admin-button" type="button" disabled={saving} onClick={saveWorkDraft}>
+            <button
+              className="admin-button"
+              type="button"
+              disabled={saving}
+              onClick={saveWorkDraft}
+            >
               {saving ? '저장 중...' : '저장'}
             </button>
           </>

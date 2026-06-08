@@ -67,6 +67,46 @@
   transform: translateX(-50%);
 }
 
+.project-modal-arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  display: flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--color-white);
+  background: rgba(0, 0, 0, 0.3);
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .project-modal-arrow {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .project-modal-media:hover .project-modal-arrow,
+  .project-modal-media:focus-within .project-modal-arrow {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.project-modal-arrow--prev {
+  left: 0;
+}
+
+.project-modal-arrow--next {
+  right: 0;
+}
+
 .project-modal-dots button {
   width: 10px;
   height: 10px;
@@ -278,6 +318,24 @@
 }
 
 @media (max-width: 720px) {
+  .project-modal-arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .project-modal-arrow--prev {
+    left: 0;
+  }
+
+  .project-modal-arrow--next {
+    right: 0;
+  }
+
+  .project-modal-arrow svg {
+    width: 36px;
+    height: 36px;
+  }
+
   .project-modal-dots {
     bottom: 20px;
     gap: 10px;

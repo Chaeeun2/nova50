@@ -16,7 +16,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { defaultMainPageContent, normalizeMainPageContent } from '../../src/data/mainPageContent'
+import { defaultMainPageContent, MAIN_CARD_STYLES, normalizeMainPageContent } from '../../src/data/mainPageContent'
 import AdminEditModal from '../components/AdminEditModal'
 import AdminMediaRemoveButton from '../components/AdminMediaRemoveButton'
 import AdminLayout from '../components/AdminLayout'
@@ -98,6 +98,8 @@ export default function MainPageManager() {
   const [logoUploading, setLogoUploading] = useState(false)
   const [editingCardIndex, setEditingCardIndex] = useState(null)
   const [cardDraft, setCardDraft] = useState(null)
+  const [pendingHeroDeletions, setPendingHeroDeletions] = useState([])
+  const [pendingLogoDeletions, setPendingLogoDeletions] = useState([])
   const logoDragSensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -122,6 +124,8 @@ export default function MainPageManager() {
       setContent(mergeMainContent(contentData))
       setImagesByType({ horizontal: horizontalImages, vertical: verticalImages })
       setPartnerLogos(logos)
+      setPendingHeroDeletions([])
+      setPendingLogoDeletions([])
     } catch (error) {
       window.alert(`메인 데이터 로딩에 실패했습니다: ${error.message}`)
     } finally {
@@ -167,9 +171,27 @@ export default function MainPageManager() {
     setCardDraft((currentDraft) => updater(currentDraft))
   }
 
-  const saveCardDraft = () => {
-    updateCard(editingCardIndex, () => ({ ...cardDraft }))
-    closeCardModal()
+  const saveCardDraft = async () => {
+    const nextContent = mergeMainContent({
+      ...content,
+      section03: {
+        ...content.section03,
+        cards: content.section03.cards.map((card, index) =>
+          index === editingCardIndex ? { ...cardDraft } : card,
+        ),
+      },
+    })
+
+    try {
+      setSaving(true)
+      setContent(nextContent)
+      await mainPageContentService.saveMainPageContent(nextContent)
+      closeCardModal()
+    } catch (error) {
+      window.alert(`MAIN 콘텐츠 저장에 실패했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   useEffect(() => {
@@ -189,9 +211,33 @@ export default function MainPageManager() {
     try {
       setSaving(true)
       await mainPageContentService.saveMainPageContent(content)
+
+      await Promise.all(
+        pendingHeroDeletions.map(async (imageData) => {
+          if (imageData.r2Key) {
+            await imageService.deleteImage(imageData.r2Key)
+          }
+
+          await mainImageService.deleteMainImage(imageData.id)
+        }),
+      )
+
+      await Promise.all(
+        pendingLogoDeletions.map(async (logo) => {
+          if (logo.r2Key) {
+            await imageService.deleteImage(logo.r2Key)
+          }
+
+          await partnerLogoService.deletePartnerLogo(logo.id)
+        }),
+      )
+
+      setPendingHeroDeletions([])
+      setPendingLogoDeletions([])
       window.alert('MAIN 콘텐츠가 저장되었습니다.')
     } catch (error) {
       window.alert(`MAIN 콘텐츠 저장에 실패했습니다: ${error.message}`)
+      await loadMainData()
     } finally {
       setSaving(false)
     }
@@ -208,14 +254,14 @@ export default function MainPageManager() {
       setUploading(true)
       const currentLength = imagesByType[type].length
 
-      await Promise.all(
+      const newImages = await Promise.all(
         previews.map(async (preview, index) => {
           const uploadResult = await imageService.uploadImage(preview.file, {
             folder: 'main',
             source: 'admin-main-hero',
           })
 
-          await mainImageService.addMainImage({
+          const id = await mainImageService.addMainImage({
             type,
             order: currentLength + index,
             fileName: uploadResult.fileName,
@@ -225,10 +271,25 @@ export default function MainPageManager() {
             fileSize: uploadResult.size || 0,
             contentType: uploadResult.contentType || 'image/jpeg',
           })
+
+          return {
+            id,
+            type,
+            order: currentLength + index,
+            fileName: uploadResult.fileName,
+            imageUrl: uploadResult.imageUrl || uploadResult.publicUrl,
+            r2Key: uploadResult.key || uploadResult.r2Key,
+            originalName: uploadResult.fileName,
+            fileSize: uploadResult.size || 0,
+            contentType: uploadResult.contentType || 'image/jpeg',
+          }
         }),
       )
 
-      await loadMainData()
+      setImagesByType((current) => ({
+        ...current,
+        [type]: [...current[type], ...newImages],
+      }))
     } catch (error) {
       window.alert(`이미지 저장에 실패했습니다: ${error.message}`)
     } finally {
@@ -236,18 +297,16 @@ export default function MainPageManager() {
     }
   }
 
-  const deleteImage = async (imageData) => {
-    if (!window.confirm('이미지를 삭제하시겠습니까?')) {
+  const deleteImage = (type, imageData) => {
+    if (!window.confirm('이미지를 삭제하시겠습니까? 저장 버튼을 눌러야 반영됩니다.')) {
       return
     }
 
-    try {
-      await imageService.deleteImage(imageData.r2Key)
-      await mainImageService.deleteMainImage(imageData.id)
-      await loadMainData()
-    } catch (error) {
-      window.alert(`이미지 삭제에 실패했습니다: ${error.message}`)
-    }
+    setImagesByType((current) => ({
+      ...current,
+      [type]: current[type].filter((image) => image.id !== imageData.id),
+    }))
+    setPendingHeroDeletions((current) => [...current, imageData])
   }
 
   const addPartnerLogos = async (selection) => {
@@ -261,15 +320,16 @@ export default function MainPageManager() {
       setLogoUploading(true)
       const currentLength = partnerLogos.length
 
-      await Promise.all(
+      const newLogos = await Promise.all(
         previews.map(async (preview, index) => {
           const uploadResult = await imageService.uploadImage(preview.file, {
             folder: 'main/logos',
             source: 'admin-main-logo',
           })
 
-          await partnerLogoService.addPartnerLogo({
-            name: preview.name?.replace(/\.[^.]+$/, '') || `logo-${currentLength + index + 1}`,
+          const name = preview.name?.replace(/\.[^.]+$/, '') || `logo-${currentLength + index + 1}`
+          const id = await partnerLogoService.addPartnerLogo({
+            name,
             imageUrl: uploadResult.imageUrl || uploadResult.publicUrl,
             r2Key: uploadResult.key || uploadResult.r2Key,
             fileName: uploadResult.fileName,
@@ -277,10 +337,21 @@ export default function MainPageManager() {
             contentType: uploadResult.contentType || 'image/png',
             order: currentLength + index,
           })
+
+          return {
+            id,
+            name,
+            imageUrl: uploadResult.imageUrl || uploadResult.publicUrl,
+            r2Key: uploadResult.key || uploadResult.r2Key,
+            fileName: uploadResult.fileName,
+            fileSize: uploadResult.size || 0,
+            contentType: uploadResult.contentType || 'image/png',
+            order: currentLength + index,
+          }
         }),
       )
 
-      await loadMainData()
+      setPartnerLogos((current) => [...current, ...newLogos])
     } catch (error) {
       window.alert(`로고 추가에 실패했습니다: ${error.message}`)
     } finally {
@@ -321,21 +392,13 @@ export default function MainPageManager() {
     }
   }
 
-  const deletePartnerLogo = async (logo) => {
-    if (!window.confirm('로고를 삭제하시겠습니까?')) {
+  const deletePartnerLogo = (logo) => {
+    if (!window.confirm('로고를 삭제하시겠습니까? 저장 버튼을 눌러야 반영됩니다.')) {
       return
     }
 
-    try {
-      if (logo.r2Key) {
-        await imageService.deleteImage(logo.r2Key)
-      }
-
-      await partnerLogoService.deletePartnerLogo(logo.id)
-      await loadMainData()
-    } catch (error) {
-      window.alert(`로고 삭제에 실패했습니다: ${error.message}`)
-    }
+    setPartnerLogos((current) => current.filter((item) => item.id !== logo.id))
+    setPendingLogoDeletions((current) => [...current, logo])
   }
 
   return (
@@ -420,7 +483,7 @@ export default function MainPageManager() {
                                     />
                                     <AdminMediaRemoveButton
                                       ariaLabel={`${section.title} 이미지 삭제`}
-                                      onClick={() => deleteImage(image)}
+                                      onClick={() => deleteImage(section.type, image)}
                                     />
                                   </div>
                                 ))}
@@ -630,7 +693,9 @@ export default function MainPageManager() {
                         <div className="admin-main-card-title">
                           <strong style={{ fontSize: '20px' }}>{card.title?.pc || card.title?.mo || '제목 없음'}</strong>
                         </div>
-                        <div className="admin-main-card-path">{card.path || '-'}</div>
+                        <div className="admin-main-card-path">
+                          {card.style === 'about' ? 'About 스타일' : 'Works 스타일'} · {card.path || '-'}
+                        </div>
                         <div className="admin-main-card-actions">
                           <button
                             className="admin-button"
@@ -850,6 +915,28 @@ export default function MainPageManager() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="admin-form-row">
+              <label htmlFor="card-modal-style">카드 스타일</label>
+              <select
+                id="card-modal-style"
+                className="admin-input"
+                value={cardDraft.style || 'works'}
+                onChange={(event) =>
+                  updateCardDraft((currentDraft) => ({
+                    ...currentDraft,
+                    style: event.target.value,
+                  }))
+                }
+              >
+                {MAIN_CARD_STYLES.map((style) => (
+                  <option key={style} value={style}>
+                    {style === 'works' ? 'Works' : 'About'}
+                  </option>
+                ))}
+              </select>
+              <small>PC에서 Works는 넓은 카드, About은 좁은 카드로 표시됩니다.</small>
             </div>
 
             <div className="admin-form-row">
