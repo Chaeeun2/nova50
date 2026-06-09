@@ -1059,7 +1059,7 @@ export default function CareerManager() {
 
                 <div className="admin-upload-section" style={{ marginTop: '28px' }}>
                   <h4>지원양식 파일</h4>
-                  <small>PDF, DOC, DOCX, PPT, PPTX, ZIP, HWP (최대 10MB). 저장 시 R2에 업로드됩니다.</small>
+                  <small>PDF, DOC, DOCX, PPT, PPTX, ZIP, HWP (최대 10MB)</small>
                   {(() => {
                     const pendingFile = content.cta.applicationFormMedia?.pendingFile
                     const pendingPreviewUrl = getMediaDisplayUrl(content.cta.applicationFormMedia)
@@ -1180,6 +1180,7 @@ export default function CareerManager() {
                   <h5>{device === 'pc' ? 'PC' : 'Mobile'}</h5>
                   <div className="admin-form-row">
                     <label htmlFor={`work-modal-title-${device}`}>타이틀</label>
+                    <small>{device === 'pc' ? '최대 3줄 권장' : '최대 2줄 권장'}</small>
                     <textarea
                       id={`work-modal-title-${device}`}
                       className="admin-textarea"
@@ -1197,6 +1198,7 @@ export default function CareerManager() {
             </div>
             <div className="admin-form-row" style={{ marginTop: '20px' }}>
               <label htmlFor="work-modal-copy">카드 문구</label>
+              <small>최대 2줄 권장</small>
               <textarea
                 id="work-modal-copy"
                 className="admin-textarea admin-textarea-small"
@@ -1211,6 +1213,7 @@ export default function CareerManager() {
             </div>
             <div className="admin-form-row">
               <label htmlFor="work-modal-tags">태그 (쉼표로 구분)</label>
+              <small>최대 4개</small>
               <input
                 id="work-modal-tags"
                 className="admin-input"
@@ -1257,6 +1260,7 @@ export default function CareerManager() {
             </div>
             <div className="admin-form-row">
               <label htmlFor="welfare-modal-copy">설명</label>
+              <small>최대 2줄 권장</small>
               <textarea
                 id="welfare-modal-copy"
                 className="admin-textarea admin-textarea-small"
@@ -1271,6 +1275,7 @@ export default function CareerManager() {
             </div>
             <div className="admin-upload-section">
               <h4>아이콘</h4>
+              <small>1080*1080px (1:1 비율) 권장</small>
               <ImageUploader
                 deferUpload
                 maxFiles={1}

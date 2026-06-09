@@ -176,11 +176,6 @@
   line-height: 1.3;
 }
 
-.project-modal-title-mo {
-  display: none;
-  white-space: pre-line;
-}
-
 .project-modal-title h2 {
   margin: 0;
   font-size: 32px;
@@ -356,14 +351,6 @@
     margin-bottom: 8px;
     font-size: 16px;
     line-height: 1.3;
-  }
-
-  .project-modal-title-pc {
-    display: none;
-  }
-
-  .project-modal-title-mo {
-    display: block;
   }
 
   .project-modal-title h2 {

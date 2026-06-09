@@ -272,7 +272,7 @@
 
 .admin-upload-section h4 {
   font-size: 1.8rem !important;
-  margin: 0 0 15px !important;
+  margin: 0 0 10px !important;
   padding: 10px 0 0 !important;
   font-weight: 700 !important;
 }
@@ -427,6 +427,11 @@
   line-height: 1.4;
 }
 
+.admin-upload-section small {
+  display: block;
+  margin-bottom: 10px;
+}
+
 .admin-pc-mo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -444,11 +449,6 @@
 .admin-core-value-images-panel .admin-upload-section h4 {
   margin-top: 0 !important;
   padding-top: 0 !important;
-}
-
-.admin-core-value-images-panel .admin-upload-section small {
-  display: block;
-  margin-bottom: 12px;
 }
 
 .admin-device-panel {

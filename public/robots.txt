@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nova-50.web.app/sitemap.xml
+Disallow: /admin/
+
+Sitemap: https://nova-50.com/sitemap.xml

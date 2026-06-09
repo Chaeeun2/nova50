@@ -706,6 +706,7 @@ export default function WorksManager() {
               </div>
               <div className="admin-upload-section">
                 <h4>썸네일</h4>
+                <small>1080*1350px (4:5 비율) 권장</small>
                 <ImageUploader
                   deferUpload
                   maxFiles={1}
@@ -836,7 +837,7 @@ export default function WorksManager() {
               </div>
               <div className="admin-upload-section">
                 <h4>상세 이미지</h4>
-                <small className="admin-detail-images-hint">드래그로 순서를 변경할 수 있습니다.</small>
+                <small className="admin-detail-images-hint">드래그 앤 드롭으로 순서 변경<br />1500*1500px 이상 권장</small>
                 <ImageUploader
                   deferUpload
                   multiple

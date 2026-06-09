@@ -1,4 +1,4 @@
-import { getIdToken, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { getIdToken, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 
 const allowedAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
@@ -65,27 +65,6 @@ export async function loginAdmin(email, password) {
 export async function logoutAdmin() {
   assertAuthConfigured()
   await signOut(auth)
-}
-
-export function getCurrentUser() {
-  assertAuthConfigured()
-
-  return new Promise((resolve, reject) => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      unsubscribe()
-
-      try {
-        if (!user || !(await hasAdminPermission(user))) {
-          resolve(null)
-          return
-        }
-
-        resolve({ user, isAdmin: true })
-      } catch (error) {
-        reject(error)
-      }
-    })
-  })
 }
 
 export async function checkAdminPermission() {

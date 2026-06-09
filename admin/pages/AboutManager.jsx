@@ -303,24 +303,6 @@ export default function AboutManager() {
     }))
   }
 
-  const updateCoreValue = (index, changes) => {
-    updateContent((currentContent) => ({
-      ...currentContent,
-      coreValues: currentContent.coreValues.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, ...changes } : item,
-      ),
-    }))
-  }
-
-  const updateService = (index, changes) => {
-    updateContent((currentContent) => ({
-      ...currentContent,
-      services: currentContent.services.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, ...changes } : item,
-      ),
-    }))
-  }
-
   const createEmptyService = () => ({
     id: crypto.randomUUID(),
     title: { pc: '', mo: '' },
@@ -445,15 +427,6 @@ export default function AboutManager() {
           itemIndex === index ? { ...item, ...changes } : item,
         ),
       },
-    }))
-  }
-
-  const updateMember = (index, changes) => {
-    updateContent((currentContent) => ({
-      ...currentContent,
-      members: currentContent.members.map((member, memberIndex) =>
-        memberIndex === index ? { ...member, ...changes } : member,
-      ),
     }))
   }
 
@@ -1007,6 +980,7 @@ export default function AboutManager() {
               <div className="admin-device-panel admin-core-value-images-panel">
                 <div className="admin-upload-section">
                   <h4>기본 이미지</h4>
+                  <small>1080*1080px (1:1 비율), 배경이 투명한 png 이미지 권장</small>
                   <ImageUploader
                     deferUpload
                     maxFiles={1}
@@ -1036,6 +1010,7 @@ export default function AboutManager() {
               <div className="admin-device-panel admin-core-value-images-panel">
                 <div className="admin-upload-section">
                   <h4>마우스 오버 시 이미지</h4>
+                  <small>1080*1080px (1:1 비율), 배경이 투명한 png 이미지 권장</small>
                   <ImageUploader
                     deferUpload
                     maxFiles={1}
@@ -1194,6 +1169,17 @@ export default function AboutManager() {
 
             <div className="admin-upload-section">
               <h4>프로필 이미지</h4>
+              <small>
+                3000*1100px 권장,{' '}
+                <a
+                  href="https://pub-724687d8ff2b4ccea216d8af4ba19301.r2.dev/main/member_BG.jpg"
+                  target="_blank"
+                  rel="noopener noreferrer" style={{ color: '#777' }}
+                >
+                  배경이미지
+                </a>
+                를 다운받아 활용
+              </small>
               <ImageUploader
                 deferUpload
                 maxFiles={1}

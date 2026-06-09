@@ -15,35 +15,7 @@ const MAIN_CARD_IMAGE_BY_PATH = {
   '/about': MAIN_CARD_IMAGE_URLS.about,
 }
 
-export const MAIN_CARD_STYLES = ['works', 'about']
-
-export function resolveMainCardStyle(card = {}, index = 0) {
-  if (card.style === 'works' || card.style === 'about') {
-    return card.style
-  }
-
-  const path = card.path || ''
-
-  if (path.includes('works')) {
-    return 'works'
-  }
-
-  if (path.includes('about')) {
-    return 'about'
-  }
-
-  const titleKey = String(card.title?.pc || card.title?.mo || card.title || '')
-    .trim()
-    .toLowerCase()
-
-  if (titleKey === 'works') {
-    return 'works'
-  }
-
-  if (titleKey === 'about') {
-    return 'about'
-  }
-
+export function resolveMainCardStyle(_card = {}, index = 0) {
   return index === 0 ? 'works' : 'about'
 }
 

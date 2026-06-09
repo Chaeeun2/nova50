@@ -158,7 +158,3 @@ export function collectAboutMemberMedia(member = {}) {
 export function collectAboutServiceMedia(service = {}) {
   return service.video?.trim() ? [service.video] : []
 }
-
-export function collectAboutCoreValueMedia(item = {}) {
-  return item.image ? [item.image] : []
-}

@@ -6,6 +6,7 @@ import {
   getResponsiveText,
   normalizeMainPageContent,
   resolveMainCardImage,
+  resolveMainCardStyle,
 } from '../data/mainPageContent'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
@@ -380,7 +381,7 @@ function MainPage() {
       >
         {mainPageText.section03.cards.map((card, index) => {
           const cardImages = getCardImageSources(card, index)
-          const cardStyle = card.style || (index === 0 ? 'works' : 'about')
+          const cardStyle = resolveMainCardStyle(card, index)
 
           return (
           <a

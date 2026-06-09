@@ -16,7 +16,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { defaultMainPageContent, MAIN_CARD_STYLES, normalizeMainPageContent } from '../../src/data/mainPageContent'
+import { defaultMainPageContent, normalizeMainPageContent, resolveMainCardStyle } from '../../src/data/mainPageContent'
 import AdminEditModal from '../components/AdminEditModal'
 import AdminMediaRemoveButton from '../components/AdminMediaRemoveButton'
 import AdminLayout from '../components/AdminLayout'
@@ -26,14 +26,14 @@ import { imageService } from '../services/imageService'
 
 const imageSections = [
   {
-    description: '히어로 이미지 (권장 크기: 2560*1440px)',
+    caption: '2560*1440px 권장',
     emptyText: '업로드된 PC 이미지가 없습니다.',
     itemClassName: 'admin-image-item-horizontal',
     title: 'PC 히어로 이미지',
     type: 'horizontal',
   },
   {
-    description: '히어로 이미지 (권장 크기: 1080*1920px)',
+    caption: '1080*1920px 권장',
     emptyText: '업로드된 모바일 이미지가 없습니다.',
     itemClassName: 'admin-image-item-vertical',
     title: '모바일 히어로 이미지',
@@ -139,22 +139,6 @@ export default function MainPageManager() {
 
   const updateContent = (updater) => {
     setContent((currentContent) => mergeMainContent(updater(currentContent)))
-  }
-
-  const updateCard = (cardIndex, updater) => {
-    updateContent((currentContent) => {
-      const cards = currentContent.section03.cards.map((card, index) =>
-        index === cardIndex ? updater(card) : card,
-      )
-
-      return {
-        ...currentContent,
-        section03: {
-          ...currentContent.section03,
-          cards,
-        },
-      }
-    })
   }
 
   const openCardModal = (cardIndex) => {
@@ -454,7 +438,8 @@ export default function MainPageManager() {
                           </div>
 
                           <div className="admin-upload-section">
-                            <h4>{section.description}</h4>
+                            <h4>히어로 이미지</h4>
+                            <small>{section.caption}</small>
                             <ImageUploader
                               deferUpload
                               multiple
@@ -499,7 +484,7 @@ export default function MainPageManager() {
                 </section>
 
                 <section className="admin-content-main admin-form-section">
-                  <h4>Section1: 소개</h4>
+                  <h4>회사 소개</h4>
                   <div className="admin-pc-mo-grid">
                     <div className="admin-device-panel">
                       <h5>PC</h5>
@@ -686,19 +671,16 @@ export default function MainPageManager() {
                 </section>
 
                 <section className="admin-content-main admin-form-section">
-                  <h4>Section2: 카드</h4>
+                  <h4>페이지 이동 카드</h4>
                   <div className="admin-main-card-list">
-                    {content.section03.cards.map((card, index) => (
-                      <div className="admin-main-card-row" key={`main-card-${index}`}>
+                      {content.section03.cards.map((card, index) => (
+                        <div className="admin-main-card-row" key={`main-card-${index}`} style={{ gridTemplateColumns: '24px minmax(0, 1fr) auto' }}>
                         <div className="admin-main-card-title">
                           <strong style={{ fontSize: '20px' }}>{card.title?.pc || card.title?.mo || '제목 없음'}</strong>
                         </div>
-                        <div className="admin-main-card-path">
-                          {card.style === 'about' ? 'About 스타일' : 'Works 스타일'} · {card.path || '-'}
-                        </div>
                         <div className="admin-main-card-actions">
                           <button
-                            className="admin-button"
+                            className="admin-button admin-button-secondary"
                             type="button"
                             onClick={() => openCardModal(index)}
                           >
@@ -711,7 +693,7 @@ export default function MainPageManager() {
                 </section>
 
                 <section className="admin-content-main admin-form-section">
-                  <h4>Section3: 파트너사</h4>
+                  <h4>파트너사 로고</h4>
                   <div className="admin-pc-mo-grid">
                     <div className="admin-device-panel">
                       <h5>PC</h5>
@@ -813,7 +795,7 @@ export default function MainPageManager() {
                     <div className="admin-logo-manager-header">
                       <div>
                         <h5>파트너사 로고</h5>
-                        <p>드래그 앤 드롭으로 순서 변경</p>
+                        <p>드래그 앤 드롭으로 순서 변경<br />세로 450px 이상 png 이미지 권장, 이미지 내 상하 여백으로 비율 조정</p>
                       </div>
                     </div>
 
@@ -917,29 +899,7 @@ export default function MainPageManager() {
               ))}
             </div>
 
-            <div className="admin-form-row">
-              <label htmlFor="card-modal-style">카드 스타일</label>
-              <select
-                id="card-modal-style"
-                className="admin-input"
-                value={cardDraft.style || 'works'}
-                onChange={(event) =>
-                  updateCardDraft((currentDraft) => ({
-                    ...currentDraft,
-                    style: event.target.value,
-                  }))
-                }
-              >
-                {MAIN_CARD_STYLES.map((style) => (
-                  <option key={style} value={style}>
-                    {style === 'works' ? 'Works' : 'About'}
-                  </option>
-                ))}
-              </select>
-              <small>PC에서 Works는 넓은 카드, About은 좁은 카드로 표시됩니다.</small>
-            </div>
-
-            <div className="admin-form-row">
+            <div className="admin-form-row" style={{ marginTop: '20px' }}>
               <label htmlFor="card-modal-path">링크</label>
               <input
                 id="card-modal-path"

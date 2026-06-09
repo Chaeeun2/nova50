@@ -1,7 +1,16 @@
 export const SITE_NAME = 'NOVA50'
-export const SITE_URL = 'https://nova-50.web.app'
+export const SITE_URL = 'https://nova-50.com'
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/thumbnail.png`
-export const DEFAULT_FAVICON = '/favicon.png'
+
+export const robotsDisallowPaths = ['/admin/']
+
+export const sitemapEntries = [
+  { path: '/', changefreq: 'weekly', priority: 1.0 },
+  { path: '/about', changefreq: 'monthly', priority: 0.8 },
+  { path: '/works', changefreq: 'weekly', priority: 0.8 },
+  { path: '/career', changefreq: 'monthly', priority: 0.7 },
+  { path: '/contact', changefreq: 'monthly', priority: 0.7 },
+]
 
 const defaultDescription =
   '노바피프티는 사람과 브랜드를 직접 연결하는 순간을 만듭니다. 새로운 아이디어, 감각적인 실행, 차별화된 경험으로 브랜드가 빛나는 현장을 함께 완성합니다.'

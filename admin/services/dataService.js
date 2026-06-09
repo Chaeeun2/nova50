@@ -44,13 +44,6 @@ function removeUndefined(value) {
 }
 
 export const mainImageService = {
-  async getMainImages() {
-    assertDbConfigured()
-
-    const mainImagesQuery = query(collection(db, 'mainImages'), orderBy('createdAt', 'desc'))
-    return mapSnapshot(await getDocs(mainImagesQuery))
-  },
-
   async getMainImagesByType(type) {
     assertDbConfigured()
 
@@ -73,15 +66,6 @@ export const mainImageService = {
     })
 
     return docRef.id
-  },
-
-  async updateMainImage(id, imageData) {
-    assertDbConfigured()
-
-    await updateDoc(doc(db, 'mainImages', id), {
-      ...imageData,
-      updatedAt: serverTimestamp(),
-    })
   },
 
   async deleteMainImage(id) {
