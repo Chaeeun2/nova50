@@ -1,6 +1,7 @@
 export const SITE_NAME = 'NOVA50'
 export const SITE_URL = 'https://nova-50.com'
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/thumbnail.png`
+export const RSS_FEED_PATH = '/rss.xml'
 
 export const robotsDisallowPaths = ['/admin/']
 
