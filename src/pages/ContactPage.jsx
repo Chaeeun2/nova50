@@ -9,6 +9,7 @@ import { contactPrivacyPolicy } from '../data/privacyPolicy'
 import '../styles/ProjectModal.css'
 import { useRevealAnimations } from '../hooks/useRevealAnimations'
 import { getPageContent, submitContactInquiry } from '../services/mainPageService'
+import { isEmailJsConfigured, sendContactInquiryEmail } from '../services/emailService'
 import { uploadFile } from '../services/uploadService'
 import { CONTACT_ATTACHMENT_ACCEPT, validateContactAttachment } from '../utils/contactAttachment'
 import { revealDelay } from '../utils/reveal'
@@ -141,6 +142,13 @@ function ContactPage() {
     try {
       setIsSubmitting(true)
 
+      const inquiryPayload = {
+        name: String(formData.get('name') || '').trim(),
+        phone: String(formData.get('phone') || '').trim(),
+        company: String(formData.get('company') || '').trim(),
+        inquiry: String(formData.get('inquiry') || '').trim(),
+      }
+
       let attachment = null
 
       if (selectedFile) {
@@ -160,12 +168,16 @@ function ContactPage() {
       }
 
       await submitContactInquiry({
-        name: String(formData.get('name') || '').trim(),
-        phone: String(formData.get('phone') || '').trim(),
-        company: String(formData.get('company') || '').trim(),
-        inquiry: String(formData.get('inquiry') || '').trim(),
+        ...inquiryPayload,
         attachment,
       })
+
+      if (isEmailJsConfigured()) {
+        await sendContactInquiryEmail({
+          ...inquiryPayload,
+          attachment,
+        })
+      }
 
       form.reset()
       setSelectedFile(null)
