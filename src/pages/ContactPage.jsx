@@ -173,10 +173,20 @@ function ContactPage() {
       })
 
       if (isEmailJsConfigured()) {
-        await sendContactInquiryEmail({
-          ...inquiryPayload,
-          attachment,
-        })
+        try {
+          await sendContactInquiryEmail({
+            ...inquiryPayload,
+            attachment,
+          })
+        } catch (emailError) {
+          form.reset()
+          setSelectedFile(null)
+          setSelectedFileName('')
+          window.alert(
+            `문의는 저장되었으나 이메일 알림 발송에 실패했습니다.\n\n${emailError.message}`,
+          )
+          return
+        }
       }
 
       form.reset()
@@ -270,11 +280,11 @@ function ContactPage() {
           <div className="contact-form-left">
             <label className="contact-form-order-1">
               <span>Your name</span>
-              <input name="name" type="text" />
+              <input name="name" type="text" required />
             </label>
             <label className="contact-form-order-2">
               <span>Phone number</span>
-              <input name="phone" type="tel" />
+              <input name="phone" type="tel" required />
             </label>
             <label className="contact-form-order-3">
               <span>Corporate info</span>
@@ -297,7 +307,7 @@ function ContactPage() {
           <div className="contact-form-right">
             <label className="contact-form-order-4">
               <span>About your inquiry</span>
-              <textarea name="inquiry" />
+              <textarea name="inquiry" required />
             </label>
             <div className="contact-file-upload contact-form-order-5">
               <label className="contact-file-button">
