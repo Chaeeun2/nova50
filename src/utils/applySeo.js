@@ -1,4 +1,4 @@
-import { SITE_URL } from '../config/seo'
+import { SITE_NAME, SITE_URL } from '../config/seo'
 
 function upsertMeta(attribute, key, content) {
   if (!content) {
@@ -44,7 +44,7 @@ export function applySeo({ title, description, image, path }) {
   upsertMeta('name', 'twitter:image', image)
 
   upsertMeta('property', 'og:type', 'website')
-  upsertMeta('property', 'og:site_name', 'NOVA50')
+  upsertMeta('property', 'og:site_name', SITE_NAME)
   upsertMeta('property', 'og:title', title)
   upsertMeta('property', 'og:description', description)
   upsertMeta('property', 'og:image', image)
